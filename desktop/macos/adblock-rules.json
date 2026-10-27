@@ -228,5 +228,13 @@
       "type": "css-display-none",
       "selector": ".js-inline-ad, a[href^=\"https://deliver.ptgncdn.com/\"], a[href^=\"https://www.iyalc.com/\"]"
     }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?challenges\\.cloudflare\\.com[/:]"
+    },
+    "action": {
+      "type": "ignore-previous-rules"
+    }
   }
 ]

@@ -92,6 +92,8 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     private var libraryLayout: [NSLayoutConstraint] = []
     private var libraryMode = false
     private var libraryExit: NSTitlebarAccessoryViewController?
+    private let verificationPanel = NSStackView()
+    private var verificationTimer: Timer?
 
     private let welcome = NSStackView()
     private let sidebar = NSStackView()
@@ -275,6 +277,30 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         webHost.layer?.cornerRadius = 26
         webHost.layer?.masksToBounds = true
         buildWelcome()
+        verificationPanel.orientation = .vertical
+        verificationPanel.alignment = .leading
+        verificationPanel.spacing = 10
+        verificationPanel.wantsLayer = true
+        verificationPanel.layer?.cornerRadius = 14
+        verificationPanel.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        verificationPanel.edgeInsets = NSEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        let verificationText = NSTextField(wrappingLabelWithString: "网站安全验证尚未完成。内置浏览器可能不受网站支持；请手动完成验证，或选择下方操作。")
+        verificationText.font = .systemFont(ofSize: 14)
+        verificationPanel.addArrangedSubview(verificationText)
+        let verificationActions = NSStackView()
+        for (name, action) in [("重新加载", #selector(refresh)), ("关闭广告规则后重试", #selector(retryWithoutAdRules)), ("在默认浏览器打开", #selector(openExternal)), ("收起", #selector(hideVerification))] {
+            let button = NSButton(title: name, target: self, action: action)
+            button.bezelStyle = .rounded
+            verificationActions.addArrangedSubview(button)
+        }
+        verificationPanel.addArrangedSubview(verificationActions)
+        add(verificationPanel, to: webHost)
+        NSLayoutConstraint.activate([
+            verificationPanel.leadingAnchor.constraint(equalTo: webHost.leadingAnchor, constant: 20),
+            verificationPanel.trailingAnchor.constraint(equalTo: webHost.trailingAnchor, constant: -20),
+            verificationPanel.bottomAnchor.constraint(equalTo: webHost.bottomAnchor, constant: -20)
+        ])
+        verificationPanel.isHidden = true
         shellLayout = [
             right.leadingAnchor.constraint(equalTo: side.trailingAnchor),
             webHost.topAnchor.constraint(equalTo: toolbarGlass.bottomAnchor, constant: 14),
@@ -448,6 +474,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         chooseFolder(name: cloudNames[sender.tag], cloud: true)
     }
     private func showClouds(_ key: Int) {
+        hideVerification()
         setLibraryMode(false)
         bookmarkPanel?.view.isHidden = true
         current = nil
@@ -563,6 +590,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         syncToolbar()
     }
     private func show(_ key: Int) {
+        hideVerification()
         setLibraryMode(key == -1)
         bookmarkPanel?.view.isHidden = true
         cloudCoordinator?.view.isHidden = true
@@ -675,6 +703,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         } else { status.stringValue = bookmarkStore.error ?? "书签保存失败，请重试。" }
     }
     private func showBookmarks() {
+        hideVerification()
         setLibraryMode(false)
         current = nil; welcome.isHidden = true; cloudPanel?.isHidden = true; cloudCoordinator?.view.isHidden = true
         for tab in tabs.values { tab.isHidden = true }
@@ -710,6 +739,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         }
     }
     @objc private func resetBrowser() {
+        hideVerification()
         setLibraryMode(false)
         current = nil
         for web in tabs.values {
@@ -730,6 +760,34 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         locationLabel.stringValue = "选择左侧入口"
         status.stringValue = ""
         syncToolbar()
+    }
+    @objc private func hideVerification() {
+        verificationTimer?.invalidate()
+        verificationTimer = nil
+        verificationPanel.isHidden = true
+    }
+    @objc private func retryWithoutAdRules() {
+        guard adBlocker.enabled else { active?.reload(); return }
+        toggleAdBlock()
+    }
+    private func checkVerification(_ web: WKWebView) {
+        guard web === active, (current ?? -1) >= 0 else { return }
+        let script = "Boolean(document.querySelector('#challenge-running, #challenge-stage, #cf-challenge-running') || /正在进行安全验证|Checking your browser|Verifying you are human|Just a moment/i.test(document.title + ' ' + (document.body?.innerText || '').slice(0, 1800)))"
+        web.evaluateJavaScript(script) { [weak self, weak web] result, _ in
+            guard let self = self, let web = web, web === self.active, result as? Bool == true else { return }
+            self.verificationPanel.removeFromSuperview()
+            self.webHost.addSubview(self.verificationPanel)
+            NSLayoutConstraint.activate([
+                self.verificationPanel.leadingAnchor.constraint(equalTo: self.webHost.leadingAnchor, constant: 20),
+                self.verificationPanel.trailingAnchor.constraint(equalTo: self.webHost.trailingAnchor, constant: -20),
+                self.verificationPanel.bottomAnchor.constraint(equalTo: self.webHost.bottomAnchor, constant: -20)
+            ])
+            self.verificationPanel.isHidden = false
+            self.status.stringValue = "网站验证仍未完成；应用不会自动点击验证码。"
+        }
+    }
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        if webView === active { hideVerification() }
     }
     @objc private func goBack() { active?.goBack() }
     @objc private func goForward() { active?.goForward() }
@@ -823,6 +881,12 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         if service?.isRunning == true { service?.terminate() }
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if webView === active, (current ?? -1) >= 0 {
+            verificationTimer?.invalidate()
+            verificationTimer = Timer.scheduledTimer(withTimeInterval: 20, repeats: false) { [weak self, weak webView] _ in
+                MainActor.assumeIsolated { if let web = webView { self?.checkVerification(web) } }
+            }
+        }
         if webView === active { status.stringValue = (current ?? -1) >= 0 && adBlocker.enabled && adBlocker.failed ? "广告规则未能加载，当前网页未受拦截保护。" : ""; syncToolbar() }
     }
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
