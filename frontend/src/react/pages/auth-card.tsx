@@ -16,7 +16,7 @@ export function AuthCard({ title, lede, busy = false, children }: {
   return (
     <main className="flex justify-center px-6 py-12 max-sm:px-4 max-sm:py-6">
       <section aria-labelledby="auth-card-title" aria-busy={busy || undefined}
-        className="flex w-full max-w-140 flex-col gap-6 rounded-3xl border border-separator-border bg-background-secondary-default p-8 max-sm:p-5">
+        data-auth-card="" className="flex w-full max-w-140 flex-col gap-6 rounded-3xl border border-separator-border bg-background-secondary-default p-8 max-sm:p-5">
         <header className="flex flex-col gap-1">
           <img src="/vvs-club.svg" sizes="40px"
             alt="" width={40} height={40} decoding="async" className="mb-4 size-10" />

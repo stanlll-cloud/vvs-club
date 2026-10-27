@@ -44,3 +44,5 @@ body.peach-react {
 .ui-fcollapse.ui-fcollapse-settled {
   overflow: visible;
 }
+
+@import "../vvs-glass.css";

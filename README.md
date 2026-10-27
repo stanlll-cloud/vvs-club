@@ -1,6 +1,10 @@
-# vvs-club
+<p align="center"><img src="resources/vvs-club.svg" width="120" alt="vvs-club Logo"></p>
 
-**好片有去处，收藏有条理。**
+# 私人影院 看片利器
+
+**vvs-club · 你的私人放映空间。**
+
+![vvs-club Mac 应用界面](docs/assets/vvs-club-preview.jpg)
 
 把散落的影片整理成自己的媒体库，也给常用的在线站点留一个固定入口。vvs-club 面向个人使用：目录怎么放、资料怎么补、今天看什么，由你决定。
 
@@ -28,9 +32,11 @@ Mac 窗口左侧为站点列表，右侧为独立网页浏览面板，带后退�
 python3 desktop/macos/build.py
 ```
 
-打开生成的 `build/vvs-club-macos/vvs-club.app`。在线入口不依赖本地媒体服务；「本地媒体库」需要先按[源码运行说明](docs/OPERATIONS.md#从源码运行windowsmacos)准备并启动服务。外壳默认连接 `http://127.0.0.1:8900`，可在侧栏修改地址。
+先按[源码运行说明](docs/OPERATIONS.md#从源码运行windowsmacos)准备仓库的 `.venv`，再打开生成的 `build/vvs-club-macos/vvs-club.app`。选择「本地媒体库」时应用会启动本机服务，首次使用进入可视化设置。「扫描本地」可直接选文件夹；「连接网盘」可选择相应服务的同步或挂载目录。
 
-Mac 外壳按当前机器架构构建，不包含 Python 媒体服务、FFmpeg 或媒体文件。独立安装包、签名、公证与自动更新尚未提供。原项目下载站提供 Peach 原版，不是 vvs-club 的安装包。
+Mac 外壳按当前机器架构构建，并连接构建时所在的源码与 `.venv`；这两个目录须保留。它没有内置独立 Python 运行时、FFmpeg 或媒体文件，暂不能只复制 `.app` 到其他 Mac。完整便携安装包、Developer ID 签名、公证与自动更新尚未提供。原项目下载站提供 Peach 原版，不是 vvs-club 的安装包。
+
+百度网盘、阿里网盘、夸克网盘当前通过已同步／挂载的文件夹接入；尚无这些服务的账号直连或扫码登录。连接说明见 [Mac 应用](desktop/macos/README.md)。
 
 ## 自己维护入口
 
@@ -49,3 +55,11 @@ vvs-club 基于 [Peach](https://github.com/peach-mitao/peach) 的开源代码。
 项目遵循 [AGPL-3.0-or-later](LICENSE)。原作者声明、第三方标识、组件许可及[复用清单](docs/REUSE.md)保留。技术包名 `peach`、CLI、数据库和协议标识维持兼容，不作为产品品牌展示。
 
 仅管理自行持有或获授权使用的媒体，遵守适用法律、版权和来源平台条款；第三方成人站点仅限达到法定年龄且当地允许的使用者。应用不提供媒体资源或付费内容访问权。
+
+## 推广 · Just My Socks
+
+三网套餐可选，具体线路、支持运营商和地区以所选套餐的官方说明为准。
+
+[![查看套餐并注册](docs/assets/jms-button.svg)](https://justmysocks.net/members/aff.php?aff=39372)
+
+这是项目维护者的推广链接，通过该入口注册或购买，维护者可能获得佣金。此服务与软件使用无绑定关系，vvs-club 不是该服务的官方客户端。

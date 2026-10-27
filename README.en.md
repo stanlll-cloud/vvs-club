@@ -1,4 +1,6 @@
-# vvs-club
+<p align="center"><img src="resources/vvs-club.svg" width="120" alt="vvs-club logo"></p>
+
+# vvs-club · Your private cinema
 
 **Your collection, with a place for everything.**
 
@@ -12,13 +14,13 @@ With Apple Command Line Tools installed, run from the repository root:
 python3 desktop/macos/build.py
 ```
 
-Open `build/vvs-club-macos/vvs-club.app`. Online destinations work independently of the media backend. For local-library features, first configure and start the inherited backend following [Operations](docs/OPERATIONS.md). The desktop shell defaults to `http://127.0.0.1:8900`; its sidebar lets you change that address.
+Prepare the repository's `.venv` following [Operations](docs/OPERATIONS.md), then open `build/vvs-club-macos/vvs-club.app`. Selecting the local library starts the app's own loopback-only backend; a new installation opens the visual setup flow. Local scanning uses the system folder picker. Cloud scanning accepts folders synced or mounted by an existing client or mount tool. The listed cloud providers do not yet have direct account or QR-code integration.
 
 The shell uses top-level macOS WebKit views with back, forward, reload and external-browser controls. Website login, age checks, regional restrictions and playback compatibility remain controlled by each website. Automatic popups are disabled. No iframe restrictions or certificate checks are removed.
 
 Destinations are listed in [sites.json](desktop/macos/sites.json): PigAV, JAVHDPorn, SpankBang and Pornhub's Chinese site. Pages are opened only when selected. Edit the list and rebuild to change the sidebar.
 
-This is a locally built desktop shell, not a complete packaged backend. It does not bundle Python, FFmpeg or media files. Developer ID signing, notarization, independent installers and automatic updates are not provided. Upstream downloads are Peach releases, not vvs-club releases.
+This source build records the source checkout and `.venv` location, which must remain available. It does not bundle an independent Python runtime, FFmpeg or media files and is not portable by copying only the `.app`. Developer ID signing, notarization, independent installers and automatic updates are not provided. Upstream downloads are Peach releases, not vvs-club releases.
 
 ## Project boundaries
 
@@ -33,3 +35,7 @@ Derived from [Peach](https://github.com/peach-mitao/peach), Copyright (C) 2026 l
 Distributed under [AGPL-3.0-or-later](LICENSE), with original copyright notices and third-party licenses retained. See [Reuse](docs/REUSE.md). Use only media you own or are authorized to access, and comply with applicable law and source-site terms. Adult destinations are for users of legal age where permitted. No media files or paid-content access rights are supplied.
 
 [中文说明](README.md) · [Desktop instructions](desktop/macos/README.md) · [Issue tracker](https://github.com/stanlll-cloud/vvs-club/issues)
+
+## Affiliate promotion · Just My Socks
+
+[View plans and register](https://justmysocks.net/members/aff.php?aff=39372). This affiliate link may earn the maintainer a commission. Routes and supported carriers depend on the selected plan. vvs-club is not an official client of this service.

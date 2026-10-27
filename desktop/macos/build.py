@@ -41,14 +41,25 @@ def main() -> None:
     plist = {
         'CFBundleExecutable': 'vvs-club', 'CFBundleName': 'vvs-club',
         'CFBundleDisplayName': 'vvs-club', 'CFBundleIdentifier': 'cloud.stanlll.vvs-club',
-        'CFBundlePackageType': 'APPL', 'CFBundleShortVersionString': '0.1.0',
+        'CFBundlePackageType': 'APPL', 'CFBundleIconFile': 'vvs-club.icns', 'CFBundleShortVersionString': '0.1.0',
         'CFBundleVersion': '1', 'LSMinimumSystemVersion': '13.0',
         'NSHighResolutionCapable': True, 'NSPrincipalClass': 'NSApplication',
         'NSHumanReadableCopyright': 'vvs-club contributors; Peach © 2026 longmeidao; AGPL-3.0-or-later',
         'NSAppTransportSecurity': {'NSAllowsLocalNetworking': True},
     }
     (bundle / 'Contents/Info.plist').write_bytes(plistlib.dumps(plist))
+    logo = source.parents[1] / 'resources/vvs-club.png'
+    shutil.copy2(logo, resources / 'vvs-club.png')
+    iconset = args.output.resolve() / 'vvs-club.iconset'
+    iconset.mkdir(parents=True, exist_ok=True)
+    for points in (16, 32, 128, 256, 512):
+        for scale in (1, 2):
+            pixels = points * scale
+            name = f"icon_{points}x{points}{'@2x' if scale == 2 else ''}.png"
+            subprocess.run(['sips', '-z', str(pixels), str(pixels), str(logo), '--out', str(iconset / name)], check=True, stdout=subprocess.DEVNULL)
+    subprocess.run(['iconutil', '-c', 'icns', str(iconset), '-o', str(resources / 'vvs-club.icns')], check=True)
     shutil.copy2(source / 'sites.json', resources / 'sites.json')
+    (resources / 'runtime.json').write_text(json.dumps({'backendRoot': str(source.parents[1])}))
     shutil.copy2(source.parents[1] / 'LICENSE', resources / 'LICENSE')
     subprocess.run(['codesign', '--force', '--sign', '-', str(bundle)], check=True)
     print(f'构建完成：{bundle}')

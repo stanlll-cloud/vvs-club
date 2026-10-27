@@ -6,6 +6,43 @@ struct Site: Decodable {
     let url: String
 }
 
+// 玻璃的轮廓与反光随系统外观变化，减少透明度时使用实底。
+final class ClubGlass: NSVisualEffectView {
+    private let sheen = CAGradientLayer()
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        wantsLayer = true
+        if sheen.superlayer == nil { layer?.insertSublayer(sheen, at: 0) }
+        refreshGlass()
+    }
+    override func layout() { super.layout(); sheen.frame = bounds }
+    private func refreshGlass() {
+        let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        sheen.colors = [NSColor.white.withAlphaComponent(dark ? 0.21 : 0.68).cgColor,
+                        NSColor.white.withAlphaComponent(dark ? 0.035 : 0.12).cgColor,
+                        NSColor.white.withAlphaComponent(dark ? 0.08 : 0.30).cgColor]
+        sheen.locations = [0, 0.42, 1]
+        sheen.startPoint = CGPoint(x: 0, y: 1)
+        sheen.endPoint = CGPoint(x: 0.9, y: 0)
+        sheen.cornerRadius = 22
+        layer?.borderWidth = 1
+        layer?.borderColor = NSColor.white.withAlphaComponent(dark ? 0.34 : 0.88).cgColor
+        layer?.cornerRadius = 22
+    }
+    override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); refreshGlass() }
+}
+
+final class ClubBackdrop: NSView {
+    override func draw(_ dirtyRect: NSRect) {
+        let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        let colors: [NSColor] = dark
+            ? [NSColor(white: 0.035, alpha: 1), NSColor(white: 0.095, alpha: 1)]
+            : [NSColor(white: 0.985, alpha: 1), NSColor(white: 0.925, alpha: 1)]
+        NSGradient(colors: colors)?.draw(in: bounds, angle: -65)
+    }
+    override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); needsDisplay = true }
+}
+
 @MainActor
 final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate {
     private var window: NSWindow!
@@ -16,6 +53,15 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     private var tabs: [Int: WKWebView] = [:]
     private var buttons: [NSButton] = []
     private var current: Int?
+    private var localURL: String?
+    private var service: Process?
+    private var servicePipe: Pipe?
+    private var serviceBuffer = ""
+    private var libraryRoute = "/"
+    private var cloudPanel: NSScrollView?
+    private let cloudNames = ["百度网盘", "阿里网盘", "夸克网盘"]
+    private var themeButton: NSButton!
+    private var darkTheme = UserDefaults.standard.object(forKey: "clubDarkTheme") as? Bool ?? (NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua)
     private var historyObservation: [NSKeyValueObservation] = []
     private let pageTitle = NSTextField(labelWithString: "你的影片空间")
     private let locationLabel = NSTextField(labelWithString: "选择左侧入口")
@@ -37,35 +83,49 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
                           backing: .buffered, defer: false)
         window.title = "vvs-club"
-        window.minSize = NSSize(width: 880, height: 580)
+        window.minSize = NSSize(width: 880, height: 780)
         window.center()
         window.isReleasedWhenClosed = false
-        let root = NSView()
+        window.titlebarAppearsTransparent = true
+        window.appearance = NSAppearance(named: darkTheme ? .darkAqua : .aqua)
+        let root = ClubBackdrop()
         window.contentView = root
 
-        let side = NSVisualEffectView()
+        let side = ClubGlass()
         side.material = .sidebar
-        side.blendingMode = .behindWindow
+        side.blendingMode = .withinWindow
+        side.wantsLayer = true
+        side.layer?.cornerRadius = 22
+        side.layer?.masksToBounds = true
         side.state = .active
         sidebar.orientation = .vertical
         sidebar.alignment = .leading
-        sidebar.spacing = 10
+        sidebar.spacing = 6
         add(side, to: root)
         add(sidebar, to: side)
-        let brand = NSTextField(labelWithString: "vvs-club")
-        brand.font = .systemFont(ofSize: 26, weight: .bold)
-        sidebar.addArrangedSubview(brand)
-        let tagline = NSTextField(labelWithString: "好片有去处，收藏有条理。")
+        let brand = NSTextField(labelWithString: "VVS / CLUB")
+        brand.font = .systemFont(ofSize: 19, weight: .bold)
+        let brandRow = NSStackView()
+        brandRow.spacing = 8
+        if let mark = Bundle.main.url(forResource: "vvs-club", withExtension: "png"), let image = NSImage(contentsOf: mark) {
+            NSApp.applicationIconImage = image
+            let icon = NSImageView(image: image)
+            icon.widthAnchor.constraint(equalToConstant: 34).isActive = true
+            icon.heightAnchor.constraint(equalToConstant: 34).isActive = true
+            brandRow.addArrangedSubview(icon)
+        }
+        brand.font = .systemFont(ofSize: 16, weight: .bold)
+        brandRow.addArrangedSubview(brand)
+        sidebar.addArrangedSubview(brandRow)
+        let tagline = NSTextField(labelWithString: "你的私人放映空间")
         tagline.textColor = .secondaryLabelColor
         tagline.font = .systemFont(ofSize: 11)
         sidebar.addArrangedSubview(tagline)
         sidebar.setCustomSpacing(28, after: tagline)
         addSection("我的空间")
         addButton("本地媒体库", symbol: "film.stack", tag: -1)
-        let settings = NSButton(title: "设置本地地址…", target: self, action: #selector(configureLocal))
-        settings.bezelStyle = .inline
-        sidebar.addArrangedSubview(settings)
-        sidebar.setCustomSpacing(22, after: settings)
+        addButton("扫描本地", symbol: "folder.badge.plus", tag: -2)
+        addButton("连接网盘", symbol: "icloud", tag: -4)
         addSection("在线影视区")
         for (index, site) in sites.enumerated() {
             addButton(site.name, symbol: "play.rectangle", tag: index)
@@ -77,11 +137,33 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         footer.font = .systemFont(ofSize: 11)
         footer.textColor = .secondaryLabelColor
         sidebar.addArrangedSubview(footer)
+        sidebar.setCustomSpacing(16, after: footer)
+        let sponsor = NSTextField(labelWithString: "推广 · Just My Socks")
+        sponsor.font = .systemFont(ofSize: 11, weight: .semibold)
+        sponsor.textColor = .secondaryLabelColor
+        sidebar.addArrangedSubview(sponsor)
+        let sponsorCopy = NSTextField(wrappingLabelWithString: "三网套餐可选\n线路以官方套餐说明为准")
+        sponsorCopy.font = .systemFont(ofSize: 11)
+        sponsorCopy.textColor = .secondaryLabelColor
+        sidebar.addArrangedSubview(sponsorCopy)
+        let sponsorButton = NSButton(title: "查看套餐并注册 ↗", target: self, action: #selector(openSponsor))
+        sponsorButton.bezelStyle = .rounded
+        sponsorButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        sidebar.addArrangedSubview(sponsorButton)
 
         let right = NSView()
         add(right, to: root)
+        let toolbarGlass = ClubGlass()
+        toolbarGlass.material = .headerView
+        toolbarGlass.blendingMode = .withinWindow
+        toolbarGlass.state = .active
+        toolbarGlass.wantsLayer = true
+        toolbarGlass.layer?.cornerRadius = 22
+        toolbarGlass.layer?.masksToBounds = true
+        add(toolbarGlass, to: right)
         let toolbar = NSStackView()
         toolbar.spacing = 8
+        toolbar.distribution = .fill
         toolbar.alignment = .centerY
         back = tool("chevron.left", "后退", #selector(goBack))
         forward = tool("chevron.right", "前进", #selector(goForward))
@@ -98,36 +180,45 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         locationLabel.font = .systemFont(ofSize: 11)
         locationLabel.textColor = .secondaryLabelColor
         locationLabel.lineBreakMode = .byTruncatingMiddle
-        labels.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        labels.setContentHuggingPriority(NSLayoutConstraint.Priority(1), for: .horizontal)
         toolbar.addArrangedSubview(labels)
         toolbar.addArrangedSubview(external)
-        add(toolbar, to: right)
+        themeButton = tool(darkTheme ? "sun.max" : "moon", "切换深色或浅色", #selector(toggleTheme))
+        toolbar.addArrangedSubview(themeButton)
+        add(toolbar, to: toolbarGlass)
         add(webHost, to: right)
         add(status, to: right)
         status.textColor = .secondaryLabelColor
         status.font = .systemFont(ofSize: 11)
         status.lineBreakMode = .byTruncatingTail
+        webHost.wantsLayer = true
+        webHost.layer?.cornerRadius = 22
+        webHost.layer?.masksToBounds = true
         buildWelcome()
         NSLayoutConstraint.activate([
-            side.leadingAnchor.constraint(equalTo: root.leadingAnchor),
-            side.topAnchor.constraint(equalTo: root.topAnchor),
-            side.bottomAnchor.constraint(equalTo: root.bottomAnchor),
-            side.widthAnchor.constraint(equalToConstant: 226),
-            sidebar.leadingAnchor.constraint(equalTo: side.leadingAnchor, constant: 18),
-            sidebar.trailingAnchor.constraint(equalTo: side.trailingAnchor, constant: -18),
+            side.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 12),
+            side.topAnchor.constraint(equalTo: root.topAnchor, constant: 12),
+            side.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -12),
+            side.widthAnchor.constraint(equalToConstant: 188),
+            sidebar.leadingAnchor.constraint(equalTo: side.leadingAnchor, constant: 14),
+            sidebar.trailingAnchor.constraint(equalTo: side.trailingAnchor, constant: -14),
             sidebar.topAnchor.constraint(equalTo: side.topAnchor, constant: 28),
             sidebar.bottomAnchor.constraint(equalTo: side.bottomAnchor, constant: -20),
             right.leadingAnchor.constraint(equalTo: side.trailingAnchor),
             right.trailingAnchor.constraint(equalTo: root.trailingAnchor),
             right.topAnchor.constraint(equalTo: root.topAnchor),
             right.bottomAnchor.constraint(equalTo: root.bottomAnchor),
-            toolbar.topAnchor.constraint(equalTo: right.topAnchor, constant: 12),
-            toolbar.leadingAnchor.constraint(equalTo: right.leadingAnchor, constant: 16),
-            toolbar.trailingAnchor.constraint(equalTo: right.trailingAnchor, constant: -16),
+            toolbarGlass.topAnchor.constraint(equalTo: right.topAnchor, constant: 12),
+            toolbarGlass.leadingAnchor.constraint(equalTo: right.leadingAnchor, constant: 14),
+            toolbarGlass.trailingAnchor.constraint(equalTo: right.trailingAnchor, constant: -14),
+            toolbarGlass.heightAnchor.constraint(equalToConstant: 56),
+            toolbar.leadingAnchor.constraint(equalTo: toolbarGlass.leadingAnchor, constant: 10),
+            toolbar.trailingAnchor.constraint(equalTo: toolbarGlass.trailingAnchor, constant: -10),
+            toolbar.centerYAnchor.constraint(equalTo: toolbarGlass.centerYAnchor),
             toolbar.heightAnchor.constraint(equalToConstant: 44),
-            webHost.topAnchor.constraint(equalTo: toolbar.bottomAnchor, constant: 10),
-            webHost.leadingAnchor.constraint(equalTo: right.leadingAnchor),
-            webHost.trailingAnchor.constraint(equalTo: right.trailingAnchor),
+            webHost.topAnchor.constraint(equalTo: toolbarGlass.bottomAnchor, constant: 14),
+            webHost.leadingAnchor.constraint(equalTo: right.leadingAnchor, constant: 14),
+            webHost.trailingAnchor.constraint(equalTo: right.trailingAnchor, constant: -14),
             webHost.bottomAnchor.constraint(equalTo: status.topAnchor, constant: -8),
             status.leadingAnchor.constraint(equalTo: right.leadingAnchor, constant: 16),
             status.trailingAnchor.constraint(equalTo: right.trailingAnchor, constant: -16),
@@ -152,37 +243,59 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     private func addButton(_ title: String, symbol: String, tag: Int) {
         let button = NSButton(title: title, target: self, action: #selector(selectSite(_:)))
         button.tag = tag
-        button.bezelStyle = .rounded
+        button.bezelStyle = .regularSquare
+        button.isBordered = false
+        button.font = .systemFont(ofSize: 13, weight: .medium)
         button.alignment = .left
         button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
         button.imagePosition = .imageLeading
         button.setButtonType(.pushOnPushOff)
         sidebar.addArrangedSubview(button)
         button.widthAnchor.constraint(equalTo: sidebar.widthAnchor).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 34).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
         buttons.append(button)
     }
     private func tool(_ symbol: String, _ title: String, _ action: Selector) -> NSButton {
         let button = NSButton(image: NSImage(systemSymbolName: symbol, accessibilityDescription: title)!, target: self, action: action)
         button.toolTip = title
         button.setAccessibilityLabel(title)
+        button.contentTintColor = .labelColor
         button.bezelStyle = .texturedRounded
+        button.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 40).isActive = true
         return button
     }
     private func buildWelcome() {
         welcome.orientation = .vertical
         welcome.alignment = .leading
         welcome.spacing = 18
-        let title = NSTextField(labelWithString: "今天，想看点什么？")
-        title.font = .systemFont(ofSize: 32, weight: .bold)
-        let body = NSTextField(wrappingLabelWithString: "本地收藏，在线站点，都从这里打开。\n选择左侧入口，网页会在右侧加载。")
+        let title = NSTextField(labelWithString: "私人影院 看片利器")
+        title.font = .systemFont(ofSize: 42, weight: .bold)
+        let body = NSTextField(wrappingLabelWithString: "属于你的私人影院。\n整理本地收藏，或打开喜欢的在线站点。")
         body.font = .systemFont(ofSize: 16)
         body.textColor = .secondaryLabelColor
-        let note = NSTextField(wrappingLabelWithString: "本地媒体库需要先启动随仓库提供的服务。\n在线站点可以独立打开，不依赖本地媒体服务。\n第三方网站的登录、地区与年龄验证需由你完成。")
+        let note = NSTextField(wrappingLabelWithString: "本地媒体库：整理影片、补全资料、播放与管理收藏。\n在线影视区：点击站点，在右侧浏览。\n第三方网站的登录与访问验证需由你完成。")
         note.font = .systemFont(ofSize: 12)
         note.textColor = .secondaryLabelColor
+        if let mark = Bundle.main.url(forResource: "vvs-club", withExtension: "png"), let image = NSImage(contentsOf: mark) {
+            let icon = NSImageView(image: image)
+            icon.widthAnchor.constraint(equalToConstant: 84).isActive = true
+            icon.heightAnchor.constraint(equalToConstant: 84).isActive = true
+            welcome.addArrangedSubview(icon)
+        }
         welcome.addArrangedSubview(title)
         welcome.addArrangedSubview(body)
+        let actions = NSStackView()
+        actions.spacing = 14
+        for (name, tag) in [("打开媒体库", -1), ("添加影片文件夹", -2), ("连接网盘", -4)] {
+            let action = NSButton(title: name, target: self, action: #selector(selectSite(_:)))
+            action.tag = tag
+            action.bezelStyle = .rounded
+            action.heightAnchor.constraint(equalToConstant: 44).isActive = true
+            actions.addArrangedSubview(action)
+        }
+        welcome.addArrangedSubview(actions)
+        welcome.setCustomSpacing(34, after: actions)
         welcome.addArrangedSubview(note)
         add(welcome, to: webHost)
         NSLayoutConstraint.activate([
@@ -197,9 +310,119 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
               url.user == nil, url.password == nil else { return nil }
         return url
     }
-    @objc private func selectSite(_ sender: NSButton) { show(sender.tag) }
+    @objc private func selectSite(_ sender: NSButton) {
+        if sender.tag == -2 { chooseFolder(name: "本地影片", cloud: false); return }
+        if sender.tag == -3 || sender.tag == -4 { showClouds(sender.tag); return }
+        if sender.tag == -1 { libraryRoute = "/" }
+        show(sender.tag)
+    }
+    private func chooseFolder(name: String, cloud: Bool) {
+        let picker = NSOpenPanel()
+        picker.title = cloud ? "选择\(name)在这台 Mac 上的文件夹" : "选择存放影片的文件夹"
+        picker.prompt = "使用这个文件夹"
+        picker.canChooseDirectories = true
+        picker.canChooseFiles = false
+        picker.allowsMultipleSelection = false
+        guard picker.runModal() == .OK, let folder = picker.url else { return }
+        var route = URLComponents()
+        route.path = "/settings/library"
+        route.queryItems = [URLQueryItem(name: "vvs_folder", value: folder.path),
+                            URLQueryItem(name: "vvs_library", value: name),
+                            URLQueryItem(name: "vvs_cloud", value: cloud ? "1" : "0")]
+        libraryRoute = route.string ?? "/settings/library"
+        show(-1)
+        if let view = tabs[-1], let base = localURL ?? UserDefaults.standard.string(forKey: "libraryURL"),
+           let target = URL(string: base + libraryRoute) { view.load(URLRequest(url: target)) }
+        status.stringValue = "文件夹已选好：在右侧确认设置并保存，再开始扫描。"
+    }
+    @objc private func connectCloud(_ sender: NSButton) {
+        guard cloudNames.indices.contains(sender.tag) else { return }
+        chooseFolder(name: cloudNames[sender.tag], cloud: true)
+    }
+    private func showClouds(_ key: Int) {
+        current = nil
+        for button in buttons { button.state = button.tag == key ? .on : .off }
+        for view in tabs.values { view.isHidden = true }
+        welcome.isHidden = true
+        cloudPanel?.removeFromSuperview()
+        let scroll = NSScrollView()
+        scroll.hasVerticalScroller = true
+        scroll.drawsBackground = false
+        let content = NSStackView()
+        content.orientation = .vertical
+        content.alignment = .leading
+        content.spacing = 18
+        content.edgeInsets = NSEdgeInsets(top: 32, left: 32, bottom: 32, right: 32)
+        let title = NSTextField(labelWithString: key == -3 ? "扫描网盘里的影片" : "连接你的网盘")
+        title.font = .systemFont(ofSize: 27, weight: .bold)
+        content.addArrangedSubview(title)
+        let intro = NSTextField(wrappingLabelWithString: "先用网盘官方客户端同步，或用你已有的工具将网盘挂载到 Mac。\n在下面选择网盘，再选择它的文件夹，即可交给媒体库整理。")
+        intro.textColor = .secondaryLabelColor
+        content.addArrangedSubview(intro)
+        let scope = NSTextField(wrappingLabelWithString: "当前连接方式：同步／挂载文件夹。尚未提供这些网盘的账号直连和扫码登录。仅登录网页不会把网盘文件接入媒体库。")
+        scope.font = .systemFont(ofSize: 12)
+        scope.textColor = .secondaryLabelColor
+        content.addArrangedSubview(scope)
+        for (index, name) in cloudNames.enumerated() {
+            let row = NSStackView()
+            row.spacing = 16
+            let label = NSTextField(labelWithString: name)
+            label.font = .systemFont(ofSize: 15, weight: .semibold)
+            label.widthAnchor.constraint(equalToConstant: 150).isActive = true
+            row.addArrangedSubview(label)
+            let button = NSButton(title: "选择网盘文件夹…", target: self, action: #selector(connectCloud(_:)))
+            button.tag = index
+            button.bezelStyle = .rounded
+            row.addArrangedSubview(button)
+            let card = ClubGlass()
+            card.material = .popover
+            card.blendingMode = .withinWindow
+            card.state = .active
+            add(row, to: card)
+            content.addArrangedSubview(card)
+            let detail = NSTextField(labelWithString: "未连接 · 选择文件夹并保存后可扫描")
+            detail.font = .systemFont(ofSize: 11)
+            detail.textColor = .secondaryLabelColor
+            add(detail, to: card)
+            NSLayoutConstraint.activate([
+                card.widthAnchor.constraint(equalTo: content.widthAnchor, constant: -64),
+                card.heightAnchor.constraint(equalToConstant: 100),
+                row.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 22),
+                row.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+                row.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -22),
+                detail.leadingAnchor.constraint(equalTo: row.leadingAnchor),
+                detail.topAnchor.constraint(equalTo: row.bottomAnchor, constant: 12)
+            ])
+        }
+        content.translatesAutoresizingMaskIntoConstraints = false
+        scroll.documentView = content
+        add(scroll, to: webHost)
+        NSLayoutConstraint.activate([
+            scroll.leadingAnchor.constraint(equalTo: webHost.leadingAnchor),
+            scroll.trailingAnchor.constraint(equalTo: webHost.trailingAnchor),
+            scroll.topAnchor.constraint(equalTo: webHost.topAnchor),
+            scroll.bottomAnchor.constraint(equalTo: webHost.bottomAnchor),
+            content.leadingAnchor.constraint(equalTo: scroll.contentView.leadingAnchor),
+            content.trailingAnchor.constraint(equalTo: scroll.contentView.trailingAnchor),
+            content.topAnchor.constraint(equalTo: scroll.contentView.topAnchor)
+        ])
+        cloudPanel = scroll
+        pageTitle.stringValue = key == -3 ? "扫描网盘" : "连接网盘"
+        locationLabel.stringValue = "选择网盘和文件夹，无需填写 IP 地址"
+        status.stringValue = "文件仍由原来的网盘客户端或挂载工具提供。"
+        syncToolbar()
+    }
     private func show(_ key: Int) {
-        let raw = key == -1 ? UserDefaults.standard.string(forKey: "libraryURL") ?? "http://127.0.0.1:8900" : sites[key].url
+        cloudPanel?.isHidden = true
+        if key == -1 && UserDefaults.standard.string(forKey: "libraryURL") == nil && localURL == nil {
+            current = -1
+            for button in buttons { button.state = button.tag == key ? .on : .off }
+            pageTitle.stringValue = "本地媒体库"
+            status.stringValue = "正在启动本地媒体库…"
+            startService()
+            return
+        }
+        let raw = key == -1 ? UserDefaults.standard.string(forKey: "libraryURL") ?? localURL ?? "http://127.0.0.1:8900" : sites[key].url
         guard let url = validURL(raw) else { return }
         for button in buttons { button.state = button.tag == key ? .on : .off }
         for view in tabs.values { view.isHidden = true }
@@ -214,7 +437,11 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
             config.websiteDataStore = .default()
             config.preferences.javaScriptCanOpenWindowsAutomatically = false
             config.allowsAirPlayForMediaPlayback = true
+            if key == -1 {
+                config.userContentController.addUserScript(WKUserScript(source: themeScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+            }
             let view = WKWebView(frame: .zero, configuration: config)
+            view.underPageBackgroundColor = .clear
             view.navigationDelegate = self
             view.uiDelegate = self
             view.allowsBackForwardNavigationGestures = true
@@ -229,9 +456,25 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
             historyObservation.append(view.observe(\.estimatedProgress) { [weak self] _, _ in
                 DispatchQueue.main.async { self?.syncToolbar() }
             })
-            view.load(URLRequest(url: url))
+            let target = key == -1 ? URL(string: raw + libraryRoute) ?? url : url
+            view.load(URLRequest(url: target))
         }
         syncToolbar()
+    }
+    private var themeScript: String {
+        let choice = darkTheme ? "dark" : "light"
+        return "document.documentElement.classList.add('vvs-club-glass');document.documentElement.dataset.theme='\(choice)';document.documentElement.classList.toggle('dark',\(darkTheme));"
+    }
+    @objc private func toggleTheme() {
+        darkTheme.toggle()
+        UserDefaults.standard.set(darkTheme, forKey: "clubDarkTheme")
+        window.appearance = NSAppearance(named: darkTheme ? .darkAqua : .aqua)
+        themeButton.image = NSImage(systemSymbolName: darkTheme ? "sun.max" : "moon", accessibilityDescription: "切换深色或浅色")
+        if let local = tabs[-1] {
+            local.configuration.userContentController.removeAllUserScripts()
+            local.configuration.userContentController.addUserScript(WKUserScript(source: themeScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+            local.evaluateJavaScript(themeScript, completionHandler: nil)
+        }
     }
     private var active: WKWebView? { current.flatMap { tabs[$0] } }
     private func syncToolbar() {
@@ -249,7 +492,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     @objc private func refresh() { active?.reload() }
     @objc private func openExternal() {
         guard let key = current else { return }
-        let configured = key == -1 ? UserDefaults.standard.string(forKey: "libraryURL") ?? "http://127.0.0.1:8900" : sites[key].url
+        let configured = key == -1 ? UserDefaults.standard.string(forKey: "libraryURL") ?? localURL ?? "http://127.0.0.1:8900" : sites[key].url
         if let url = active?.url ?? validURL(configured), validURL(url.absoluteString) != nil { NSWorkspace.shared.open(url) }
     }
     @objc private func configureLocal() {
@@ -272,6 +515,67 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         tabs[-1]?.removeFromSuperview()
         tabs.removeValue(forKey: -1)
         if current == -1 { show(-1) }
+    }
+    private func startService() {
+        if service?.isRunning == true { return }
+        guard let configURL = Bundle.main.url(forResource: "runtime", withExtension: "json"),
+              let data = try? Data(contentsOf: configURL),
+              let config = try? JSONSerialization.jsonObject(with: data) as? [String: String],
+              let root = config["backendRoot"] else {
+            status.stringValue = "未找到本地媒体服务，请设置已有服务地址。"
+            return
+        }
+        let python = URL(fileURLWithPath: root).appendingPathComponent(".venv/bin/python")
+        let entry = URL(fileURLWithPath: root).appendingPathComponent("desktop/macos/service.py")
+        guard FileManager.default.isExecutableFile(atPath: python.path),
+              FileManager.default.fileExists(atPath: entry.path) else {
+            status.stringValue = "本地依赖尚未准备好，请按仓库说明安装后重新打开。"
+            return
+        }
+        let process = Process()
+        let pipe = Pipe()
+        process.executableURL = python
+        process.arguments = ["-u", entry.path]
+        process.currentDirectoryURL = URL(fileURLWithPath: root)
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        serviceBuffer = ""
+        pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
+            let bytes = handle.availableData
+            guard !bytes.isEmpty, let text = String(data: bytes, encoding: .utf8) else { return }
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.serviceBuffer += text
+                while let newline = self.serviceBuffer.firstIndex(of: "\n") {
+                    let line = String(self.serviceBuffer[..<newline])
+                    self.serviceBuffer.removeSubrange(...newline)
+                    if line.hasPrefix("VVS_READY=") {
+                        let raw = String(line.dropFirst(10))
+                        if let url = self.validURL(raw), url.host == "127.0.0.1" {
+                            self.localURL = raw
+                            if self.current == -1 {
+                                self.tabs[-1]?.removeFromSuperview()
+                                self.tabs.removeValue(forKey: -1)
+                                self.show(-1)
+                            }
+                        }
+                    } else if line.hasPrefix("VVS_ERROR=") {
+                        self.status.stringValue = String(line.dropFirst(10))
+                    }
+                }
+            }
+        }
+        do {
+            try process.run()
+            service = process
+            servicePipe = pipe
+        } catch {
+            status.stringValue = "本地媒体服务未能启动，请检查运行环境。"
+        }
+    }
+    func applicationWillTerminate(_ notification: Notification) {
+        servicePipe?.fileHandleForReading.readabilityHandler = nil
+        if service?.isRunning == true { service?.terminate() }
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         if webView === active { status.stringValue = ""; syncToolbar() }
@@ -306,6 +610,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         menu.addItem(item)
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "关于 vvs-club", action: #selector(about), keyEquivalent: "")
+        appMenu.addItem(withTitle: "高级：连接其他媒体服务…", action: #selector(configureLocal), keyEquivalent: "")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "退出 vvs-club", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         item.submenu = appMenu
@@ -318,6 +623,9 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         editMenu.addItem(withTitle: "全选", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         edit.submenu = editMenu
         NSApp.mainMenu = menu
+    }
+    @objc private func openSponsor() {
+        if let url = URL(string: "https://justmysocks.net/members/aff.php?aff=39372") { NSWorkspace.shared.open(url) }
     }
     @objc private func about() {
         NSApp.orderFrontStandardAboutPanel(options: [

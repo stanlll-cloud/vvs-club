@@ -1,3 +1,7 @@
+---
+kind: reference
+---
+
 # 上游来源与更新
 
 vvs-club 是 Peach 的衍生版本。原作者 Copyright (C) 2026 longmeidao，许可证为 AGPL-3.0-or-later，第三方依赖仍受各自许可约束。

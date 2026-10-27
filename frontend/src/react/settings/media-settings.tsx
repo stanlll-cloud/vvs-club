@@ -71,7 +71,7 @@ const blankRow = (path = ''): MediaRow => ({
   library_color: '', library_policy: 'auto', library_stages: '', cost: 'free',
 });
 
-function initialRows(data: ConfigurationData): MediaRow[] {
+function savedRows(data: ConfigurationData): MediaRow[] {
   const known = data.media_sources?.filter((row) => MEDIA_SOURCES.some(([kind]) => kind === row.location));
   if (known?.length) {
     return known.map((row) => ({
@@ -85,6 +85,17 @@ function initialRows(data: ConfigurationData): MediaRow[] {
     }));
   }
   return (data.media_dirs.length ? data.media_dirs : ['']).map((path) => blankRow(path));
+}
+
+function initialRows(data: ConfigurationData): MediaRow[] {
+  const rows = savedRows(data);
+  const params = new URLSearchParams(window.location.search);
+  const path = params.get('vvs_folder') || '';
+  if (!path || !path.startsWith('/') || rows.some(row => row.path === path)) return rows;
+  const row = blankRow(path);
+  row.library = params.get('vvs_library') || '本地影片';
+  if (params.get('vvs_cloud') === '1') { row.location = 'mounted'; row.cost = 'metered'; }
+  return [...rows.filter(existing => existing.path), row];
 }
 
 const fieldErrorsOf = (cause: unknown): FieldErrors | null => {

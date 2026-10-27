@@ -825,3 +825,5 @@ html:has([data-selection-dock]) { scroll-padding-bottom: var(--selection-dock-sp
 .bui-table.bui-table-sm td {
   @apply px-2.5 py-1.5 text-body-2-medium;
 }
+
+@import "./vvs-glass.css";

@@ -1,0 +1,83 @@
+/* vvs-club Mac 外壳的影院主题。仅作用于自有媒体页，不改第三方站点。 */
+html.vvs-club-glass {
+  --vvs-fill: #ffffff68;
+  --vvs-edge: #ffffffc9;
+  --vvs-shine: #ffffffa6;
+  --vvs-shadow: #00000018;
+  --vvs-ground: #f5f5f7;
+  --vvs-text: #1d1d1f;
+  --vvs-muted: #6e6e73;
+  --ground: #f5f5f7;
+  --surface: #ffffffba;
+  --sunk: #e8e8ed;
+  --ink: #1d1d1f;
+  --ink-2: #424245;
+  --muted: #6e6e73;
+  --line: #ffffffa6;
+  --line-soft: #00000018;
+  --control-radius: 12px;
+  --surface-radius: 18px;
+  --floating-radius: 22px;
+}
+html.vvs-club-glass.dark {
+  --vvs-fill: #2525257a;
+  --vvs-edge: #ffffff30;
+  --vvs-shine: #ffffff22;
+  --vvs-shadow: #00000066;
+  --vvs-ground: #080808;
+  --vvs-text: #f5f5f7;
+  --vvs-muted: #a1a1a6;
+  --ground: #080808;
+  --surface: #252525c2;
+  --sunk: #1c1c1e;
+  --ink: #f5f5f7;
+  --ink-2: #d2d2d7;
+  --muted: #a1a1a6;
+  --line: #ffffff26;
+  --line-soft: #ffffff18;
+}
+html.vvs-club-glass body {
+  background: linear-gradient(145deg, #ffffff08, transparent 65%), var(--vvs-ground);
+  color: var(--vvs-text);
+}
+html.vvs-club-glass .peach-react {
+  --color-text-primary: var(--vvs-text);
+  --color-text-secondary: var(--vvs-muted);
+  --color-text-tertiary: var(--vvs-muted);
+  --color-background-full: transparent;
+  --color-background-primary-default: var(--vvs-fill);
+  --color-background-secondary-default: var(--vvs-fill);
+  --color-background-tertiary-default: var(--sunk);
+  --color-separator-border: var(--vvs-edge);
+  --elevation-card: inset 0 1px 0 var(--vvs-shine), 0 8px 28px var(--vvs-shadow);
+}
+html.vvs-club-glass [data-setup-window],
+html.vvs-club-glass [data-auth-card],
+html.vvs-club-glass [data-sidebar-drawer][data-sidebar-drawer] {
+  background: linear-gradient(125deg, var(--vvs-shine), transparent 38%), var(--vvs-fill);
+  border: 1px solid var(--vvs-edge);
+  box-shadow: inset 0 1px 1px #ffffff80, inset 0 -1px 1px #ffffff18,
+    0 18px 48px var(--vvs-shadow);
+  backdrop-filter: blur(32px) saturate(155%);
+  -webkit-backdrop-filter: blur(32px) saturate(155%);
+}
+html.vvs-club-glass [data-setup-scene] {
+  color: var(--vvs-text);
+  background: linear-gradient(145deg, var(--vvs-shine), transparent 65%), var(--vvs-fill);
+  border-right: 1px solid var(--vvs-edge);
+}
+html.vvs-club-glass [data-setup-mark="welcome"] { color: var(--vvs-text); }
+html.vvs-club-glass [data-sidebar-nav] button { border-radius: 14px; }
+html.vvs-club-glass [data-sidebar-nav] button[aria-pressed="true"] {
+  background: var(--vvs-fill);
+  box-shadow: inset 0 1px 0 var(--vvs-edge), 0 5px 18px var(--vvs-shadow);
+}
+@media (prefers-reduced-transparency: reduce) {
+  html.vvs-club-glass { --vvs-fill: #f5f5f7; }
+  html.vvs-club-glass.dark { --vvs-fill: #252525; }
+  html.vvs-club-glass [data-setup-window],
+  html.vvs-club-glass [data-sidebar-drawer][data-sidebar-drawer] {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

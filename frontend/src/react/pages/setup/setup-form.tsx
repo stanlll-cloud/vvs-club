@@ -76,7 +76,16 @@ export function SetupForm({ setup, onDone, onRestore }: { setup: SetupQuestions;
   const blank = (path = ''): SetupFolder => ({ path, location: setup.media_source_default, root: '', ...firstLibrary.current,
     cost: setup.media_source_default === 'local' ? 'free' : '' });
   const folders = useFolderRows<SetupFolder>({
-    initial: () => [blank()], blank: () => blank(), pickFolder, describe: describeFailure,
+    initial: () => {
+      const params = new URLSearchParams(window.location.search);
+      const selected = params.get('vvs_folder') || '';
+      const row = blank(selected.startsWith('/') ? selected : '');
+      if (selected.startsWith('/')) {
+        row.library = params.get('vvs_library') || '本地影片';
+        if (params.get('vvs_cloud') === '1') { row.location = 'mounted'; row.cost = 'metered'; }
+      }
+      return [row];
+    }, blank: () => blank(), pickFolder, describe: describeFailure,
     focusAfterPick: true,
   });
   firstLibrary.current = libraryFields(folders.rows[0]);

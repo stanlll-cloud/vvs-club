@@ -1,6 +1,4 @@
-/** vvs-club 的 V 形单色标识，保留原组件接口供首次设置使用。 */
+/** vvs-club 的 V 与播放键标识，供首次设置使用。 */
 export function PeachSilhouette({ variant }: { variant: 'brand' | 'welcome' }) {
-  return <svg data-setup-mark={variant} viewBox="0 0 1024 1024" fill="currentColor" aria-hidden="true" focusable="false">
-    <path d="M176 224h192l144 416 144-416h192L608 864H416Z" />
-  </svg>;
+  return <img data-setup-mark={variant} src="/vvs-club.svg" alt="vvs-club" width={variant === 'brand' ? 28 : 148} height={variant === 'brand' ? 28 : 148} />;
 }
