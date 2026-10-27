@@ -20,13 +20,15 @@ def main():
             sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
         env={k:v for k,v in os.environ.items() if not k.startswith('PEACH_')}
         env['PEACH_DATA_ROOT']=directory
-        process=subprocess.Popen([str(args.backend.resolve()),'--vvs-cli','serve','--host','127.0.0.1','--port',str(port),'--setup','--no-mdns','--no-ledger-sync'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
+        log_path=Path(directory)/'backend.log'
+        log=log_path.open('wb')
+        process=subprocess.Popen([str(args.backend.resolve()),'--vvs-cli','serve','--host','127.0.0.1','--port',str(port),'--setup','--no-mdns','--no-ledger-sync'],env=env,stdout=log,stderr=log,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
         opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
         try:
             deadline=time.monotonic()+90
             while time.monotonic()<deadline:
                 if process.poll() is not None:
-                    raise RuntimeError('冻结后端启动后退出。')
+                    raise RuntimeError('冻结后端启动后退出：\n'+log_path.read_text(encoding='utf-8',errors='replace')[-6000:])
                 try:
                     with opener.open(f'http://127.0.0.1:{port}/healthz',timeout=2) as response:
                         health=json.load(response)
@@ -41,6 +43,7 @@ def main():
             process.terminate()
             try: process.wait(timeout=15)
             except subprocess.TimeoutExpired: process.kill();process.wait()
+            log.close()
 
 
 if __name__=='__main__':

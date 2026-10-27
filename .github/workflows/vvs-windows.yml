@@ -1,10 +1,16 @@
 name: vvs-club Windows
 on:
   workflow_dispatch:
+    inputs:
+      backend_only:
+        description: Only validate the frozen backend
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
   ffmpeg:
+    if: ${{ !inputs.backend_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
