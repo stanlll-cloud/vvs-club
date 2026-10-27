@@ -18,16 +18,16 @@ final class ClubGlass: NSVisualEffectView {
     override func layout() { super.layout(); sheen.frame = bounds }
     private func refreshGlass() {
         let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        sheen.colors = [NSColor.white.withAlphaComponent(dark ? 0.21 : 0.68).cgColor,
+        sheen.colors = [NSColor.white.withAlphaComponent(dark ? 0.13 : 0.55).cgColor,
                         NSColor.white.withAlphaComponent(dark ? 0.035 : 0.12).cgColor,
                         NSColor.white.withAlphaComponent(dark ? 0.08 : 0.30).cgColor]
         sheen.locations = [0, 0.42, 1]
         sheen.startPoint = CGPoint(x: 0, y: 1)
         sheen.endPoint = CGPoint(x: 0.9, y: 0)
-        sheen.cornerRadius = 22
+        sheen.cornerRadius = 26
         layer?.borderWidth = 1
-        layer?.borderColor = NSColor.white.withAlphaComponent(dark ? 0.34 : 0.88).cgColor
-        layer?.cornerRadius = 22
+        layer?.borderColor = NSColor.white.withAlphaComponent(dark ? 0.19 : 0.79).cgColor
+        layer?.cornerRadius = 26
     }
     override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); refreshGlass() }
 }
@@ -36,17 +36,63 @@ final class ClubBackdrop: NSView {
     override func draw(_ dirtyRect: NSRect) {
         let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         let colors: [NSColor] = dark
-            ? [NSColor(white: 0.035, alpha: 1), NSColor(white: 0.095, alpha: 1)]
-            : [NSColor(white: 0.985, alpha: 1), NSColor(white: 0.925, alpha: 1)]
+            ? [NSColor(white: 0.031, alpha: 1), NSColor(white: 0.031, alpha: 1)]
+            : [NSColor(white: 0.965, alpha: 1), NSColor(white: 0.965, alpha: 1)]
         NSGradient(colors: colors)?.draw(in: bounds, angle: -65)
     }
     override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); needsDisplay = true }
+}
+
+final class ClubSidebarButton: NSButton {
+    private var hovering = false
+    private var tracking: NSTrackingArea?
+    override var state: NSControl.StateValue { didSet { needsDisplay = true } }
+    override func updateTrackingAreas() {
+        if let tracking = tracking { removeTrackingArea(tracking) }
+        tracking = NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect], owner: self)
+        if let tracking = tracking { addTrackingArea(tracking) }
+        super.updateTrackingAreas()
+    }
+    override func mouseEntered(with event: NSEvent) { hovering = true; needsDisplay = true }
+    override func mouseExited(with event: NSEvent) { hovering = false; needsDisplay = true }
+    override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); needsDisplay = true }
+    override func draw(_ dirtyRect: NSRect) {
+        let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        if state == .on || hovering {
+            NSGraphicsContext.saveGraphicsState()
+            if state == .on { let shadow = NSShadow(); shadow.shadowColor = NSColor.black.withAlphaComponent(dark ? 0.25 : 0.10); shadow.shadowBlurRadius = 8; shadow.shadowOffset = NSSize(width: 0, height: -2); shadow.set() }
+            NSColor.white.withAlphaComponent(state == .on ? (dark ? 0.13 : 0.65) : (dark ? 0.06 : 0.30)).setFill()
+            NSBezierPath(roundedRect: bounds.insetBy(dx: 2, dy: 3), xRadius: 14, yRadius: 14).fill()
+            NSGraphicsContext.restoreGraphicsState()
+        }
+        contentTintColor = state == .on ? .labelColor : .secondaryLabelColor
+        super.draw(dirtyRect)
+    }
+}
+
+final class ClubActionButton: NSButton {
+    var primary = false
+    override func draw(_ dirtyRect: NSRect) {
+        let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        let fill = primary ? NSColor.systemBlue : NSColor.white.withAlphaComponent(dark ? 0.09 : 0.70)
+        fill.withAlphaComponent(fill.alphaComponent * (isHighlighted ? 0.65 : 1)).setFill()
+        NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 12, yRadius: 12).fill()
+        attributedTitle = NSAttributedString(string: title, attributes: [.font: font ?? NSFont.systemFont(ofSize: 14, weight: .medium), .foregroundColor: primary ? NSColor.white : NSColor.labelColor])
+        super.draw(dirtyRect)
+    }
 }
 
 @MainActor
 final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate {
     private var window: NSWindow!
     private let webHost = NSView()
+    private var shellSide: NSView?
+    private var shellToolbar: NSView?
+    private var shellLayout: [NSLayoutConstraint] = []
+    private var libraryLayout: [NSLayoutConstraint] = []
+    private var libraryMode = false
+    private var libraryExit: NSTitlebarAccessoryViewController?
+
     private let welcome = NSStackView()
     private let sidebar = NSStackView()
     private var sites: [Site] = []
@@ -101,14 +147,28 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         side.material = .sidebar
         side.blendingMode = .withinWindow
         side.wantsLayer = true
-        side.layer?.cornerRadius = 22
+        side.layer?.cornerRadius = 26
         side.layer?.masksToBounds = true
         side.state = .active
         sidebar.orientation = .vertical
         sidebar.alignment = .leading
         sidebar.spacing = 6
         add(side, to: root)
-        add(sidebar, to: side)
+        let sideScroll = NSScrollView()
+        sideScroll.drawsBackground = false
+        sideScroll.hasVerticalScroller = true
+        sideScroll.autohidesScrollers = true
+        let sideDocument = NSView()
+        sideDocument.translatesAutoresizingMaskIntoConstraints = false
+        sideScroll.documentView = sideDocument
+        add(sideScroll, to: side)
+        add(sidebar, to: sideDocument)
+        NSLayoutConstraint.activate([
+            sideScroll.leadingAnchor.constraint(equalTo: side.leadingAnchor), sideScroll.trailingAnchor.constraint(equalTo: side.trailingAnchor),
+            sideScroll.topAnchor.constraint(equalTo: side.topAnchor),
+            sideDocument.leadingAnchor.constraint(equalTo: sideScroll.contentView.leadingAnchor), sideDocument.topAnchor.constraint(equalTo: sideScroll.contentView.topAnchor),
+            sideDocument.widthAnchor.constraint(equalTo: sideScroll.contentView.widthAnchor), sideDocument.heightAnchor.constraint(greaterThanOrEqualTo: sideScroll.contentView.heightAnchor)
+        ])
         let brand = NSTextField(labelWithString: "VVS / CLUB")
         brand.font = .systemFont(ofSize: 19, weight: .bold)
         let brandRow = NSStackView()
@@ -125,7 +185,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         sidebar.addArrangedSubview(brandRow)
         let tagline = NSTextField(labelWithString: "你的私人放映空间")
         tagline.textColor = .secondaryLabelColor
-        tagline.font = .systemFont(ofSize: 11)
+        tagline.font = .systemFont(ofSize: 13)
         sidebar.addArrangedSubview(tagline)
         sidebar.setCustomSpacing(28, after: tagline)
         addSection("我的空间")
@@ -140,32 +200,40 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         let spacer = NSView()
         spacer.heightAnchor.constraint(greaterThanOrEqualToConstant: 20).isActive = true
         sidebar.addArrangedSubview(spacer)
-        let footer = NSTextField(wrappingLabelWithString: "网页由各站点提供\n登录与播放规则以原站为准")
-        footer.font = .systemFont(ofSize: 11)
-        footer.textColor = .secondaryLabelColor
-        sidebar.addArrangedSubview(footer)
-        sidebar.setCustomSpacing(16, after: footer)
         let sponsor = NSTextField(labelWithString: "搬瓦工机场")
-        sponsor.font = .systemFont(ofSize: 11, weight: .semibold)
-        sponsor.textColor = .secondaryLabelColor
-        sidebar.addArrangedSubview(sponsor)
-        let sponsorCopy = NSTextField(wrappingLabelWithString: "三网套餐可选\n线路以官方套餐说明为准")
-        sponsorCopy.font = .systemFont(ofSize: 11)
+        sponsor.font = .systemFont(ofSize: 20, weight: .semibold)
+        sponsor.textColor = .labelColor
+        let sponsorCopy = NSTextField(wrappingLabelWithString: "3网GIA 线路直连")
+        sponsorCopy.font = .systemFont(ofSize: 16)
         sponsorCopy.textColor = .secondaryLabelColor
-        sidebar.addArrangedSubview(sponsorCopy)
-        let sponsorButton = NSButton(title: "立即开通 ↗", target: self, action: #selector(openSponsor))
-        sponsorButton.bezelStyle = .rounded
-        sponsorButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
-        sidebar.addArrangedSubview(sponsorButton)
+        let sponsorButton = ClubActionButton(title: "立即开通 ↗", target: self, action: #selector(openSponsor))
+        sponsorButton.isBordered = false
+        sponsorButton.font = .systemFont(ofSize: 16, weight: .semibold)
+        sponsorButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        sponsorButton.primary = true
+        let promotion = NSStackView(views: [sponsor, sponsorCopy, sponsorButton])
+        promotion.orientation = .vertical
+        promotion.alignment = .leading
+        promotion.spacing = 10
+        add(promotion, to: side)
+        sponsorButton.widthAnchor.constraint(equalTo: promotion.widthAnchor).isActive = true
+        NSLayoutConstraint.activate([
+            promotion.leadingAnchor.constraint(equalTo: side.leadingAnchor, constant: 14),
+            promotion.trailingAnchor.constraint(equalTo: side.trailingAnchor, constant: -14),
+            promotion.bottomAnchor.constraint(equalTo: side.bottomAnchor, constant: -20),
+            sideScroll.bottomAnchor.constraint(equalTo: promotion.topAnchor, constant: -18)
+        ])
 
         let right = NSView()
         add(right, to: root)
+        shellSide = side
         let toolbarGlass = ClubGlass()
+        shellToolbar = toolbarGlass
         toolbarGlass.material = .headerView
         toolbarGlass.blendingMode = .withinWindow
         toolbarGlass.state = .active
         toolbarGlass.wantsLayer = true
-        toolbarGlass.layer?.cornerRadius = 22
+        toolbarGlass.layer?.cornerRadius = 26
         toolbarGlass.layer?.masksToBounds = true
         add(toolbarGlass, to: right)
         let toolbar = NSStackView()
@@ -183,8 +251,8 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         labels.orientation = .vertical
         labels.alignment = .leading
         labels.spacing = 3
-        pageTitle.font = .systemFont(ofSize: 14, weight: .semibold)
-        locationLabel.font = .systemFont(ofSize: 11)
+        pageTitle.font = .systemFont(ofSize: 16, weight: .semibold)
+        locationLabel.font = .systemFont(ofSize: 12)
         locationLabel.textColor = .secondaryLabelColor
         locationLabel.lineBreakMode = .byTruncatingMiddle
         labels.setContentHuggingPriority(NSLayoutConstraint.Priority(1), for: .horizontal)
@@ -204,19 +272,46 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         status.font = .systemFont(ofSize: 11)
         status.lineBreakMode = .byTruncatingTail
         webHost.wantsLayer = true
-        webHost.layer?.cornerRadius = 22
+        webHost.layer?.cornerRadius = 26
         webHost.layer?.masksToBounds = true
         buildWelcome()
+        shellLayout = [
+            right.leadingAnchor.constraint(equalTo: side.trailingAnchor),
+            webHost.topAnchor.constraint(equalTo: toolbarGlass.bottomAnchor, constant: 14),
+            webHost.leadingAnchor.constraint(equalTo: right.leadingAnchor, constant: 14),
+            webHost.trailingAnchor.constraint(equalTo: right.trailingAnchor, constant: -14),
+            webHost.bottomAnchor.constraint(equalTo: status.topAnchor, constant: -8)
+        ]
+        libraryLayout = [
+            right.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+            webHost.topAnchor.constraint(equalTo: right.topAnchor),
+            webHost.leadingAnchor.constraint(equalTo: right.leadingAnchor),
+            webHost.trailingAnchor.constraint(equalTo: right.trailingAnchor),
+            webHost.bottomAnchor.constraint(equalTo: right.bottomAnchor)
+        ]
+        NSLayoutConstraint.activate(shellLayout)
+        let exit = NSTitlebarAccessoryViewController()
+        exit.layoutAttribute = .right
+        let exitView = NSView(frame: NSRect(x: 0, y: 0, width: 150, height: 28))
+        let exitButton = NSButton(title: "返回主界面", target: self, action: #selector(resetBrowser))
+        exitButton.bezelStyle = .rounded
+        exitButton.image = NSImage(systemSymbolName: "arrow.backward", accessibilityDescription: nil)
+        exitButton.imagePosition = .imageLeading
+        exitButton.setAccessibilityLabel("返回主界面")
+        exitButton.toolTip = "退出媒体库，返回主界面"
+        exitButton.frame = NSRect(x: 4, y: 2, width: 138, height: 24)
+        exitView.addSubview(exitButton)
+        exit.view = exitView
+        libraryExit = exit
         NSLayoutConstraint.activate([
             side.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 12),
             side.topAnchor.constraint(equalTo: root.topAnchor, constant: 12),
             side.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -12),
-            side.widthAnchor.constraint(equalToConstant: 188),
-            sidebar.leadingAnchor.constraint(equalTo: side.leadingAnchor, constant: 14),
-            sidebar.trailingAnchor.constraint(equalTo: side.trailingAnchor, constant: -14),
-            sidebar.topAnchor.constraint(equalTo: side.topAnchor, constant: 28),
-            sidebar.bottomAnchor.constraint(equalTo: side.bottomAnchor, constant: -20),
-            right.leadingAnchor.constraint(equalTo: side.trailingAnchor),
+            side.widthAnchor.constraint(equalToConstant: 248),
+            sidebar.leadingAnchor.constraint(equalTo: sideDocument.leadingAnchor, constant: 14),
+            sidebar.trailingAnchor.constraint(equalTo: sideDocument.trailingAnchor, constant: -14),
+            sidebar.topAnchor.constraint(equalTo: sideDocument.topAnchor, constant: 28),
+            sidebar.bottomAnchor.constraint(equalTo: sideDocument.bottomAnchor, constant: -20),
             right.trailingAnchor.constraint(equalTo: root.trailingAnchor),
             right.topAnchor.constraint(equalTo: root.topAnchor),
             right.bottomAnchor.constraint(equalTo: root.bottomAnchor),
@@ -228,10 +323,6 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
             toolbar.trailingAnchor.constraint(equalTo: toolbarGlass.trailingAnchor, constant: -10),
             toolbar.centerYAnchor.constraint(equalTo: toolbarGlass.centerYAnchor),
             toolbar.heightAnchor.constraint(equalToConstant: 44),
-            webHost.topAnchor.constraint(equalTo: toolbarGlass.bottomAnchor, constant: 14),
-            webHost.leadingAnchor.constraint(equalTo: right.leadingAnchor, constant: 14),
-            webHost.trailingAnchor.constraint(equalTo: right.trailingAnchor, constant: -14),
-            webHost.bottomAnchor.constraint(equalTo: status.topAnchor, constant: -8),
             status.leadingAnchor.constraint(equalTo: right.leadingAnchor, constant: 16),
             status.trailingAnchor.constraint(equalTo: right.trailingAnchor, constant: -16),
             status.bottomAnchor.constraint(equalTo: right.bottomAnchor, constant: -8),
@@ -248,18 +339,18 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     }
     private func addSection(_ title: String) {
         let label = NSTextField(labelWithString: title)
-        label.font = .systemFont(ofSize: 11, weight: .semibold)
+        label.font = .systemFont(ofSize: 12, weight: .semibold)
         label.textColor = .secondaryLabelColor
         sidebar.addArrangedSubview(label)
     }
     private func addButton(_ title: String, symbol: String, tag: Int) {
-        let button = NSButton(title: title, target: self, action: #selector(selectSite(_:)))
+        let button = ClubSidebarButton(title: "  " + title, target: self, action: #selector(selectSite(_:)))
         button.tag = tag
         button.bezelStyle = .regularSquare
         button.isBordered = false
-        button.font = .systemFont(ofSize: 13, weight: .medium)
+        button.font = .systemFont(ofSize: 16, weight: .regular)
         button.alignment = .left
-        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
+        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?.withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 18, weight: .regular))
         button.imagePosition = .imageLeading
         button.setButtonType(.pushOnPushOff)
         sidebar.addArrangedSubview(button)
@@ -287,7 +378,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         body.font = .systemFont(ofSize: 16)
         body.textColor = .secondaryLabelColor
         let note = NSTextField(wrappingLabelWithString: "本地媒体库：整理影片、补全资料、播放与管理收藏。\n在线影视区：点击站点，在右侧浏览。\n第三方网站的登录与访问验证需由你完成。")
-        note.font = .systemFont(ofSize: 12)
+        note.font = .systemFont(ofSize: 14)
         note.textColor = .secondaryLabelColor
         if let mark = Bundle.main.url(forResource: "vvs-club", withExtension: "png"), let image = NSImage(contentsOf: mark) {
             let icon = NSImageView(image: image)
@@ -300,9 +391,12 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         let actions = NSStackView()
         actions.spacing = 14
         for (name, tag) in [("打开媒体库", -1), ("添加影片文件夹", -2), ("连接网盘", -4)] {
-            let action = NSButton(title: name, target: self, action: #selector(selectSite(_:)))
+            let action = ClubActionButton(title: name, target: self, action: #selector(selectSite(_:)))
             action.tag = tag
-            action.bezelStyle = .rounded
+            action.primary = tag == -1
+            action.isBordered = false
+            action.font = .systemFont(ofSize: 14, weight: .medium)
+            action.widthAnchor.constraint(greaterThanOrEqualToConstant: 140).isActive = true
             action.heightAnchor.constraint(equalToConstant: 44).isActive = true
             actions.addArrangedSubview(action)
         }
@@ -354,6 +448,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         chooseFolder(name: cloudNames[sender.tag], cloud: true)
     }
     private func showClouds(_ key: Int) {
+        setLibraryMode(false)
         bookmarkPanel?.view.isHidden = true
         current = nil
         welcome.isHidden = true
@@ -393,6 +488,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         status.stringValue = "影片索引已准备好，确认媒体库设置后即可入库。"
     }
     private func showMountedClouds(_ key: Int) {
+        setLibraryMode(false)
         cloudCoordinator?.view.isHidden = true
         current = nil
         for button in buttons { button.state = button.tag == key ? .on : .off }
@@ -467,6 +563,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         syncToolbar()
     }
     private func show(_ key: Int) {
+        setLibraryMode(key == -1)
         bookmarkPanel?.view.isHidden = true
         cloudCoordinator?.view.isHidden = true
         cloudPanel?.isHidden = true
@@ -578,6 +675,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         } else { status.stringValue = bookmarkStore.error ?? "书签保存失败，请重试。" }
     }
     private func showBookmarks() {
+        setLibraryMode(false)
         current = nil; welcome.isHidden = true; cloudPanel?.isHidden = true; cloudCoordinator?.view.isHidden = true
         for tab in tabs.values { tab.isHidden = true }
         for button in buttons { button.state = button.tag == -5 ? .on : .off }
@@ -595,7 +693,24 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         bookmarkPanel?.refresh(); bookmarkPanel?.view.isHidden = false
         pageTitle.stringValue = "书签"; locationLabel.stringValue = "文件夹 · 拖拽整理 · 双击打开"; status.stringValue = "书签仅保存在这台 Mac。"; syncToolbar()
     }
+    private func setLibraryMode(_ enabled: Bool) {
+        guard enabled != libraryMode else { return }
+        libraryMode = enabled
+        NSLayoutConstraint.deactivate(enabled ? shellLayout : libraryLayout)
+        shellSide?.isHidden = enabled
+        shellToolbar?.isHidden = enabled
+        status.isHidden = enabled
+        webHost.layer?.cornerRadius = enabled ? 0 : 22
+        NSLayoutConstraint.activate(enabled ? libraryLayout : shellLayout)
+        if let exit = libraryExit {
+            if enabled { window.addTitlebarAccessoryViewController(exit) }
+            else if let index = window.titlebarAccessoryViewControllers.firstIndex(where: { $0 === exit }) {
+                window.removeTitlebarAccessoryViewController(at: index)
+            }
+        }
+    }
     @objc private func resetBrowser() {
+        setLibraryMode(false)
         current = nil
         for web in tabs.values {
             web.pauseAllMediaPlayback(completionHandler: nil)

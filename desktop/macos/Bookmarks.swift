@@ -85,6 +85,8 @@ final class BookmarkPanel: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
         for (name, action) in [("新建文件夹", #selector(newFolder)), ("编辑", #selector(edit)), ("移动到…", #selector(moveSelected)), ("删除", #selector(remove)), ("撤销删除", #selector(undoDelete))] {
             let button = NSButton(title: name, target: self, action: action)
             button.bezelStyle = .rounded
+            button.font = .systemFont(ofSize: 14)
+            button.heightAnchor.constraint(equalToConstant: 36).isActive = true
             bar.addArrangedSubview(button)
         }
         hint.textColor = .secondaryLabelColor
@@ -120,6 +122,7 @@ final class BookmarkPanel: NSObject, NSOutlineViewDataSource, NSOutlineViewDeleg
     func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
         guard let node = (item as? BookmarkTreeNode)?.value else { return nil }
         let text = NSTextField(labelWithString: tableColumn?.identifier.rawValue == "name" ? (node.folder ? "▸  " : "☆  ") + node.title : node.url ?? "文件夹")
+        text.font = .systemFont(ofSize: 16)
         text.lineBreakMode = .byTruncatingMiddle; text.toolTip = node.url ?? node.title
         return text
     }

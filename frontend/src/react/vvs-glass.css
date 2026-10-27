@@ -1,5 +1,8 @@
 /* vvs-club Mac 外壳的影院主题。仅作用于自有媒体页，不改第三方站点。 */
 html.vvs-club-glass {
+  --font-inter: -apple-system;
+  --font-sans: -apple-system, "PingFang SC", sans-serif;
+  --board-font: -apple-system, "PingFang SC", sans-serif;
   --vvs-fill: #ffffff68;
   --vvs-edge: #ffffffc9;
   --vvs-shine: #ffffffa6;
