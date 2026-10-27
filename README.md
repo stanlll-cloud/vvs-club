@@ -36,7 +36,7 @@ python3 desktop/macos/build.py
 
 Mac 外壳按当前机器架构构建，并连接构建时所在的源码与 `.venv`；这两个目录须保留。它没有内置独立 Python 运行时、FFmpeg 或媒体文件，暂不能只复制 `.app` 到其他 Mac。完整便携安装包、Developer ID 签名、公证与自动更新尚未提供。原项目下载站提供 Peach 原版，不是 vvs-club 的安装包。
 
-百度网盘、阿里网盘、夸克网盘当前通过已同步／挂载的文件夹接入；尚无这些服务的账号直连或扫码登录。连接说明见 [Mac 应用](desktop/macos/README.md)。
+百度网盘、阿里网盘、夸克网盘、TeraBox 和 115 网盘当前通过已同步／挂载的文件夹接入；尚无这些服务的账号直连或扫码登录。连接说明见 [Mac 应用](desktop/macos/README.md)。
 
 ## 自己维护入口
 
@@ -56,10 +56,10 @@ vvs-club 基于 [Peach](https://github.com/peach-mitao/peach) 的开源代码。
 
 仅管理自行持有或获授权使用的媒体，遵守适用法律、版权和来源平台条款；第三方成人站点仅限达到法定年龄且当地允许的使用者。应用不提供媒体资源或付费内容访问权。
 
-## 推广 · Just My Socks
+## 搬瓦工机场 · Just My Socks
 
 三网套餐可选，具体线路、支持运营商和地区以所选套餐的官方说明为准。
 
-[![查看套餐并注册](docs/assets/jms-button.svg)](https://justmysocks.net/members/aff.php?aff=39372)
+[![立即开通](docs/assets/jms-button.svg)](https://justmysocks.net/members/aff.php?aff=39372)
 
 这是项目维护者的推广链接，通过该入口注册或购买，维护者可能获得佣金。此服务与软件使用无绑定关系，vvs-club 不是该服务的官方客户端。

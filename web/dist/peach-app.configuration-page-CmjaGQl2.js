@@ -1,7 +1,7 @@
 (function() {
 	try {
 		var e = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}, t = new e.Error().stack;
-		t && (e._sentryDebugIds = e._sentryDebugIds || {}, e._sentryDebugIds[t] = "6fdcae45-fda4-4a59-8633-a78cc41397a6", e._sentryDebugIdIdentifier = "sentry-dbid-6fdcae45-fda4-4a59-8633-a78cc41397a6");
+		t && (e._sentryDebugIds = e._sentryDebugIds || {}, e._sentryDebugIds[t] = "7302c401-71af-4cc3-bab0-7486e1c273f4", e._sentryDebugIdIdentifier = "sentry-dbid-7302c401-71af-4cc3-bab0-7486e1c273f4");
 	} catch {}
 })();
 import { $2ec61d1d4f780267$export$a8a3e93435678ff9 as e, $3a442827418ebe87$export$eb2fcfdbd7ba97d4 as t, $542a13ca2fa5b484$export$5b6b19405a83ff9d as n, $72abaeab4d80592f$export$78efe591171d7d45 as r, $bd263d78e9bf3c56$export$f5c9f3c2c4054eec as i, $ea3928288112382f$export$439d29a4e110a164 as a, $f2ff30fde7b014be$export$3ddf2d174ce01153 as o, $fe21c36db05242bb$export$a98f0dcb43a68a25 as s, $fe21c36db05242bb$export$d7b12c4107be0d61 as c, ACCENTS as l, ApiError as u, Button as d, ButtonLink as f, CLOUD_LOCATIONS as p, CLOUD_PROXY_HELP as m, CONFIGURATION_KEY as h, CONFIGURATION_URL as g, CREDENTIAL_STATE as _, Checkbox as v, Chip as y, Disclosure as b, ENTRY_LINKS_HELP as x, ENTRY_LINKS_HINT as S, EmptyState as ee, ErrorText as C, ExternalLink as w, FEED_SCHEDULE_KEY as T, FOLLOW_CREDENTIALS_KEY as E, FOLLOW_INITIAL_RANGE_OPTIONS as D, FOLLOW_SCHEDULE_KEY as O, Fact as k, FactList as te, FieldLabel as ne, Footer as A, Help as j, HintText as re, Input as M, LIBRARY_FOLDER_HELP as ie, LIBRARY_PROCESSING_KEY as ae, Label as oe, LinkButton as se, LoadingDots as ce, M6 as le, MEDIA_PROCESSING_KEY as ue, MEDIA_PROCESSING_URL as de, MEDIA_SOURCE_ICONS as fe, MENU_POPOVER_SURFACE as pe, Note as N, PICK_FOLDER_URL as me, POLICY_COLUMNS as he, POLICY_COVER_NOTE as ge, POLICY_MATRIX as _e, POLICY_SUMMARY as ve, PathLine as ye, PillTabList as be, Progress as xe, Rows as P, SEGMENT as Se, SEGMENTED_TRACK as Ce, SETTINGS_KEY as we, SETTINGS_URL as Te, Section as F, SectionSkeleton as Ee, SegmentedRadioGroup as De, Select as Oe, Select$1 as I, SelectItem as L, SettingsCard as ke, SettingsRow as R, SiteLabel as Ae, SourceLabel as z, SourceMark as je, Stack as B, StatusLabel as V, Switch as H, THUMBNAIL_JOBS_KEY as Me, TextField as Ne, TextFieldContext as Pe, __toESM as Fe, apiGet as U, apiSend as W, appSettingsStore as Ie, boundedPreference as Le, busyProps as G, cardClass as Re, cloudProxySkeleton as ze, cn as Be, confirmModal as Ve, credentialDone as He, credentialsSkeleton as Ue, cx as We, errorMessage as K, fetchConfiguration as Ge, fetchCredentials as Ke, fetchFeedSchedule as qe, fetchFollowSchedule as Je, fetchMediaProcessing as Ye, fetchSettings as Xe, fetchThumbnailJobs as Ze, fmtSize as Qe, indexersSkeleton as $e, javBrowserSkeleton as et, momentText as tt, overlayHost as nt, peachHistory$1 as rt, previewLibraryColor as it, providerIcon as at, queryClient as q, randomId as ot, rememberShape as J, require_jsx_runtime as st, require_react as ct, saveCredential as lt, schedulePollInterval as ut, settingsPath as dt, shellNavigate as ft, sortCx as pt, sourceDefaultCost as mt, useAction as Y, useClientUpdates as ht, useLibraryTints as gt, useMutation as _t, useQuery as X, useRunSchedule as vt, useSaveFollowSchedule as yt, useSaveSettings as bt, useSaveThumbnailMode as xt } from "./peach-app.js";
@@ -2299,7 +2299,13 @@ function rr(e) {
 	let t = nr(e), n = new URLSearchParams(window.location.search), r = n.get("vvs_folder") || "";
 	if (!r || !r.startsWith("/") || t.some((e) => e.path === r)) return t;
 	let i = tr(r);
-	return i.library = n.get("vvs_library") || "本地影片", n.get("vvs_cloud") === "1" && (i.location = "mounted", i.cost = "metered"), [...t.filter((e) => e.path), i];
+	return i.library = n.get("vvs_library") || "本地影片", n.get("vvs_cloud") === "1" && (i.location = [
+		"baidu",
+		"aliyun",
+		"quark",
+		"terabox",
+		"115"
+	].includes(n.get("vvs_source") || "") ? n.get("vvs_source") : "mounted", i.cost = "metered"), [...t.filter((e) => e.path), i];
 }
 var ir = (e) => !(e instanceof u) || e.status !== 400 ? null : e.body?.errors ?? null;
 function ar({ data: e, receipt: t, panel: n }) {
@@ -4391,4 +4397,4 @@ function oi({ data: e, receipt: t, reopenTutorial: n, section: r, diagnostics: i
 }
 export { ri as ConfigurationPage };
 
-//# debugId=6fdcae45-fda4-4a59-8633-a78cc41397a6
+//# debugId=7302c401-71af-4cc3-bab0-7486e1c273f4

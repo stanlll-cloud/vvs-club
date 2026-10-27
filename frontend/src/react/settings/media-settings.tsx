@@ -94,7 +94,7 @@ function initialRows(data: ConfigurationData): MediaRow[] {
   if (!path || !path.startsWith('/') || rows.some(row => row.path === path)) return rows;
   const row = blankRow(path);
   row.library = params.get('vvs_library') || '本地影片';
-  if (params.get('vvs_cloud') === '1') { row.location = 'mounted'; row.cost = 'metered'; }
+  if (params.get('vvs_cloud') === '1') { row.location = ['baidu', 'aliyun', 'quark', 'terabox', '115'].includes(params.get('vvs_source') || '') ? params.get('vvs_source')! : 'mounted'; row.cost = 'metered'; }
   return [...rows.filter(existing => existing.path), row];
 }
 

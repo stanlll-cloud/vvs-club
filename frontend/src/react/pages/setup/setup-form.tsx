@@ -82,7 +82,7 @@ export function SetupForm({ setup, onDone, onRestore }: { setup: SetupQuestions;
       const row = blank(selected.startsWith('/') ? selected : '');
       if (selected.startsWith('/')) {
         row.library = params.get('vvs_library') || '本地影片';
-        if (params.get('vvs_cloud') === '1') { row.location = 'mounted'; row.cost = 'metered'; }
+        if (params.get('vvs_cloud') === '1') { row.location = ['baidu', 'aliyun', 'quark', 'terabox', '115'].includes(params.get('vvs_source') || '') ? params.get('vvs_source')! : 'mounted'; row.cost = 'metered'; }
       }
       return [row];
     }, blank: () => blank(), pickFolder, describe: describeFailure,

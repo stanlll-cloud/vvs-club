@@ -2,7 +2,7 @@
 (function() {
 	try {
 		var e = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}, t = new e.Error().stack;
-		t && (e._sentryDebugIds = e._sentryDebugIds || {}, e._sentryDebugIds[t] = "f488b774-b0e0-48b4-8612-a79a2cb2fbbf", e._sentryDebugIdIdentifier = "sentry-dbid-f488b774-b0e0-48b4-8612-a79a2cb2fbbf");
+		t && (e._sentryDebugIds = e._sentryDebugIds || {}, e._sentryDebugIds[t] = "becf77d0-d04d-4f4f-8933-769221c0236d", e._sentryDebugIdIdentifier = "sentry-dbid-becf77d0-d04d-4f4f-8933-769221c0236d");
 	} catch {}
 })();
 var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e = null), t.exports), s = (e, i, o, s) => {
@@ -19377,6 +19377,38 @@ var Mm = [
 		icon: "hard-drive"
 	},
 	{
+		id: "baidu",
+		name: "百度网盘",
+		label: "百度网盘",
+		default_cost: "metered",
+		cloud: !0,
+		icon: "database"
+	},
+	{
+		id: "aliyun",
+		name: "阿里网盘",
+		label: "阿里网盘",
+		default_cost: "metered",
+		cloud: !0,
+		icon: "database"
+	},
+	{
+		id: "quark",
+		name: "夸克网盘",
+		label: "夸克网盘",
+		default_cost: "metered",
+		cloud: !0,
+		icon: "database"
+	},
+	{
+		id: "terabox",
+		name: "TeraBox",
+		label: "TeraBox",
+		default_cost: "metered",
+		cloud: !0,
+		icon: "database"
+	},
+	{
 		id: "115",
 		name: "115",
 		label: "CloudDrive · 115",
@@ -21908,7 +21940,13 @@ function K_({ setup: e, onDone: t, onRestore: n }) {
 	}), v = a_({
 		initial: () => {
 			let e = new URLSearchParams(window.location.search), t = e.get("vvs_folder") || "", n = _(t.startsWith("/") ? t : "");
-			return t.startsWith("/") && (n.library = e.get("vvs_library") || "本地影片", e.get("vvs_cloud") === "1" && (n.location = "mounted", n.cost = "metered")), [n];
+			return t.startsWith("/") && (n.library = e.get("vvs_library") || "本地影片", e.get("vvs_cloud") === "1" && (n.location = [
+				"baidu",
+				"aliyun",
+				"quark",
+				"terabox",
+				"115"
+			].includes(e.get("vvs_source") || "") ? e.get("vvs_source") : "mounted", n.cost = "metered")), [n];
 		},
 		blank: () => _(),
 		pickFolder: wm,
@@ -22678,4 +22716,4 @@ E();
 var X_ = document.getElementById("peach-page"), Z_ = X_ ? Y_[X_.dataset.page ?? ""] : void 0;
 X_ && Z_ && (0, M.createRoot)(X_).render(/* @__PURE__ */ (0, z.jsx)(Z_, { data: { ...X_.dataset } }));
 
-//# debugId=f488b774-b0e0-48b4-8612-a79a2cb2fbbf
+//# debugId=becf77d0-d04d-4f4f-8933-769221c0236d

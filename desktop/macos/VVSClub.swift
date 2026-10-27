@@ -59,7 +59,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     private var serviceBuffer = ""
     private var libraryRoute = "/"
     private var cloudPanel: NSScrollView?
-    private let cloudNames = ["百度网盘", "阿里网盘", "夸克网盘"]
+    private let cloudNames = ["百度网盘", "阿里网盘", "夸克网盘", "TeraBox", "115 网盘"]
     private var themeButton: NSButton!
     private var darkTheme = UserDefaults.standard.object(forKey: "clubDarkTheme") as? Bool ?? (NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua)
     private var historyObservation: [NSKeyValueObservation] = []
@@ -138,7 +138,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         footer.textColor = .secondaryLabelColor
         sidebar.addArrangedSubview(footer)
         sidebar.setCustomSpacing(16, after: footer)
-        let sponsor = NSTextField(labelWithString: "推广 · Just My Socks")
+        let sponsor = NSTextField(labelWithString: "搬瓦工机场")
         sponsor.font = .systemFont(ofSize: 11, weight: .semibold)
         sponsor.textColor = .secondaryLabelColor
         sidebar.addArrangedSubview(sponsor)
@@ -146,7 +146,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         sponsorCopy.font = .systemFont(ofSize: 11)
         sponsorCopy.textColor = .secondaryLabelColor
         sidebar.addArrangedSubview(sponsorCopy)
-        let sponsorButton = NSButton(title: "查看套餐并注册 ↗", target: self, action: #selector(openSponsor))
+        let sponsorButton = NSButton(title: "立即开通 ↗", target: self, action: #selector(openSponsor))
         sponsorButton.bezelStyle = .rounded
         sponsorButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
         sidebar.addArrangedSubview(sponsorButton)
@@ -328,7 +328,8 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         route.path = "/settings/library"
         route.queryItems = [URLQueryItem(name: "vvs_folder", value: folder.path),
                             URLQueryItem(name: "vvs_library", value: name),
-                            URLQueryItem(name: "vvs_cloud", value: cloud ? "1" : "0")]
+                            URLQueryItem(name: "vvs_cloud", value: cloud ? "1" : "0"),
+                            URLQueryItem(name: "vvs_source", value: ["百度网盘": "baidu", "阿里网盘": "aliyun", "夸克网盘": "quark", "TeraBox": "terabox", "115 网盘": "115"][name] ?? (cloud ? "mounted" : "local"))]
         libraryRoute = route.string ?? "/settings/library"
         show(-1)
         if let view = tabs[-1], let base = localURL ?? UserDefaults.standard.string(forKey: "libraryURL"),
