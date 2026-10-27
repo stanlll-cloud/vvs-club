@@ -156,8 +156,8 @@ function Navigation({ host: at, epoch, version }: { host: SidebarHost; epoch: nu
             data-dragging={dragging === key ? '' : undefined}
             data-drop={drop?.key === key ? (drop.after ? 'after' : 'before') : undefined}
             onClick={() => at.navTo(key)} onPointerEnter={glide.hover} {...drag(key)}>
-            {key === '' ? <img data-sidebar-home-logo="" src="/peach-logo-64.png"
-              srcSet="/peach-logo-64.png 64w, /peach-logo-128.png 128w" sizes="24px" width={24} height={24} alt=""
+            {key === '' ? <img data-sidebar-home-logo="" src="/vvs-club.svg"
+              sizes="24px" width={24} height={24} alt=""
               decoding="async" /> : <Icon name={glyph} />}
             <span>{label}</span>
           </button>

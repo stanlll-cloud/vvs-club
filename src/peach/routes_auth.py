@@ -229,7 +229,7 @@ def login_html(next_path: str, *, invalid: bool = False, error: str = "") -> str
         data["invalid"] = "true"
     if error:
         data["error"] = error
-    return page_shell("登录 Peach", "login", data)
+    return page_shell("登录 vvs-club", "login", data)
 
 
 def _safe_next(value: str) -> str:

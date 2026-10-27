@@ -152,7 +152,7 @@ loadingState.syncPageTitle = path=>{
   const url=new URL(path,location.origin);
   const pathname=decodeURIComponent(url.pathname);
   const label=routeMetaOf(pathname)?.title;
-  document.title=label?`${label} · Peach`:'Peach · 蜜桃';
+  document.title=label?`${label} · vvs-club`:'vvs-club · 我的影片空间';
   document.body.dataset.surface=url.pathname;
   paintNav();
 };

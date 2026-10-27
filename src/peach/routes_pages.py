@@ -82,7 +82,7 @@ def setup_shell() -> str:
     字形从 `web/index.html` 的雪碧图里按名字摘。
     """
     index = (PROJECT_ROOT / "web/index.html").read_text(encoding="utf-8")
-    return page_shell("Peach · 首次运行", "setup", symbols="".join(_SETUP_SYMBOLS.findall(index)))
+    return page_shell("vvs-club · 首次设置", "setup", symbols="".join(_SETUP_SYMBOLS.findall(index)))
 
 
 def error_page(status: int, message: str) -> str:
@@ -812,6 +812,11 @@ def favicon_ico(request: Request):
     1024×1024 的 PNG。声明写在每个页面的 head 里，这条路径是声明之外的兜底。
     """
     return asset_response(request, PROJECT_ROOT / "resources" / "peach.ico", "image/x-icon")
+
+
+@router.api_route("/vvs-club.svg", methods=["GET", "HEAD"])
+def vvs_club_logo(request: Request):
+    return asset_response(request, PROJECT_ROOT / "resources" / "vvs-club.svg", "image/svg+xml")
 
 
 @router.api_route("/peach-logo.png", methods=["GET", "HEAD"])

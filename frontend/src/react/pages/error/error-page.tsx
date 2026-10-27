@@ -22,7 +22,7 @@ export function errorTitle(status: string | undefined): string {
 export function ErrorPage({ data }: { data: PageData }) {
   const title = errorTitle(data.status);
   useEffect(() => {
-    document.title = `Peach · ${title}`;
+    document.title = `vvs-club · ${title}`;
   }, [title]);
   return (
     <AuthCard title={title} lede={data.status === '404' ? undefined : data.detail}>

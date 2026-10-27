@@ -226,17 +226,17 @@ export function SetupForm({ setup, onDone, onRestore }: { setup: SetupQuestions;
       <div data-setup-step-content="" style={{ '--setup-direction': `${direction * 20}px` } as CSSProperties}>
         <header data-setup-step-heading="" key={step}>
           <h1 id="auth-card-title" data-copy-key={`setup.title.${step}`} ref={stepTitle} tabIndex={-1} className="text-title-1-semibold text-text-primary">
-            {step === 0 ? '欢迎使用 Peach' : step === 1 ? '你的媒体，放在哪里？' : step === 2 ? '在哪里使用 Peach？' : '准备好开始了'}
+            {step === 0 ? '把收藏安放在vvs-club' : step === 1 ? '先选一个影片文件夹' : step === 2 ? '哪些设备可以打开？' : '检查设置，开启影片空间'}
           </h1>
           <p data-copy-key={`setup.description.${step}`} className="text-body-regular text-text-secondary">
-            {step === 0 ? '花一点时间，让 Peach 更适合你。' : step === 1 ? '连接已有文件夹，或先进入界面看看。' : step === 2 ? '选择访问范围，也可以为馆藏设置密码。' : '确认这些选择，剩下的交给 Peach。'}
+            {step === 0 ? '连上媒体目录，按自己的方式找片、看片、留记录。' : step === 1 ? '选择本地或已挂载的目录；也可以暂时跳过。' : step === 2 ? '只在本机使用，或允许同一网络的设备访问。' : '保存后，vvs-club会按你选定的方式处理媒体库。'}
           </p>
         </header>
       <div hidden={step !== 0}>
         <ul data-setup-welcome-points="">
-          <li><RiFolderLine /><div data-setup-welcome-copy=""><strong className="text-body-medium">连接你的媒体库</strong><p className="text-body-2-regular text-text-secondary">本地文件夹与已挂载的网盘，都可以整理。</p></div></li>
-          <li><RiSearchLine /><div data-setup-welcome-copy=""><strong className="text-body-medium">更快找到想看的</strong><p className="text-body-2-regular text-text-secondary">用搜索、标签和收藏浏览馆藏。</p></div></li>
-          <li><RiPlayCircleLine /><div data-setup-welcome-copy=""><strong className="text-body-medium">按你的习惯播放</strong><p className="text-body-2-regular text-text-secondary">播放与外观偏好，可以随时在设置里调整。</p></div></li>
+          <li><RiFolderLine /><div data-setup-welcome-copy=""><strong className="text-body-medium">文件有位置，收藏有条理</strong><p className="text-body-2-regular text-text-secondary">把硬盘与已挂载的网盘目录放进同一个媒体库。</p></div></li>
+          <li><RiSearchLine /><div data-setup-welcome-copy=""><strong className="text-body-medium">记不清片名，也有线索</strong><p className="text-body-2-regular text-text-secondary">从人物、标签与收藏中缩小范围。</p></div></li>
+          <li><RiPlayCircleLine /><div data-setup-welcome-copy=""><strong className="text-body-medium">找到以后，接着看</strong><p className="text-body-2-regular text-text-secondary">字幕、播放方式与外观由你选择。</p></div></li>
         </ul>
       </div>
       <div hidden={step !== 1}>

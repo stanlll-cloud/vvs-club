@@ -236,8 +236,8 @@ function SettingsNav({ tab, epoch, configurable, openConfiguration, onSelect }: 
       ))}
       <div data-settings-service="" role="presentation">
         <button type="button" disabled={configurable !== true} onClick={openConfiguration}
-          title={configurable === false ? '请在运行 Peach 的设备上打开 Peach 配置' : undefined}>
-          <Icon name="folder-cog" />Peach 配置<Icon name="chevron-right" />
+          title={configurable === false ? '请在运行vvs-club的设备上打开设置' : undefined}>
+          <Icon name="folder-cog" />vvs-club设置<Icon name="chevron-right" />
         </button>
       </div>
     </div>

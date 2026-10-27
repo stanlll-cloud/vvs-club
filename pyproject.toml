@@ -59,9 +59,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/peach-mitao/peach"
-Repository = "https://github.com/peach-mitao/peach"
-Issues = "https://github.com/peach-mitao/peach/issues"
+Homepage = "https://github.com/stanlll-cloud/vvs-club"
+Repository = "https://github.com/stanlll-cloud/vvs-club"
+Issues = "https://github.com/stanlll-cloud/vvs-club/issues"
 
 [project.scripts]
 peach = "peach.error_reporting:cli_main"

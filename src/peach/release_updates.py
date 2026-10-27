@@ -9,8 +9,8 @@ from . import __version__, distribution
 from .http import HttpRequest, HttpxTransport
 from .update_packages import TOOL_PATHS
 
-RELEASES_URL = "https://github.com/peach-mitao/peach/releases"
-API_URL = "https://api.github.com/repos/peach-mitao/peach/releases?per_page=100"
+RELEASES_URL = "https://github.com/stanlll-cloud/vvs-club/releases"
+API_URL = "https://api.github.com/repos/stanlll-cloud/vvs-club/releases?per_page=100"
 DOWNLOADS_BASE = "https://downloads.peach.video"
 DOWNLOADS_API = DOWNLOADS_BASE + "/releases.json"
 GITGUD_RELEASES = "https://gitgud.io/peach-mitao/peach/-/releases"
@@ -65,7 +65,7 @@ def check(*, transport=None) -> dict:
         releases = []
         obtained = False
         downloads = False
-        for endpoint in (DOWNLOADS_API, API_URL):
+        for endpoint in (API_URL,):
             try:
                 headers = {"Accept": "application/json"}
                 if endpoint == API_URL:

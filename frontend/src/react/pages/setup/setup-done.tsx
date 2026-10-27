@@ -15,7 +15,7 @@ export function SetupDoneView({ done }: { done: SetupDone }) {
   const entry = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
-    document.title = 'Peach · 设置完成';
+    document.title = 'vvs-club · 设置完成';
     entry.current?.focus();
   }, []);
 
@@ -32,14 +32,14 @@ export function SetupDoneView({ done }: { done: SetupDone }) {
       <div data-setup-top=""><span className="text-body-2-regular text-text-secondary">设置完成</span></div>
       <div data-setup-step-scroll=""><div data-setup-step-content="">
       <header data-setup-step-heading="">
-        <h1 id="auth-card-title" className="text-title-1-semibold text-text-primary">可以开始使用了</h1>
-        <p className="text-body-regular text-text-secondary">你的 Peach 已准备就绪。</p>
+        <h1 id="auth-card-title" className="text-title-1-semibold text-text-primary">影片空间已经打开</h1>
+        <p className="text-body-regular text-text-secondary">设置已保存，开始整理你的收藏。</p>
       </header>
       <div>
       <p className="text-body-regular text-text-primary">
         {done.restored ? '已连接已有数据目录。' : done.skip_media
           ? '可在「媒体库与入库」添加媒体目录并开始扫描。' : done.scan_requested
-          ? '首次扫描已排队，在后台整理媒体库，期间可以照常使用 Peach。'
+          ? '扫描任务已排队，后台处理期间仍可浏览vvs-club。'
           : '稍后在配置页开始扫描媒体库。'}
       </p>
       <Disclosure summary="运行信息">
@@ -56,7 +56,7 @@ export function SetupDoneView({ done }: { done: SetupDone }) {
       </Disclosure>
       </div></div></div>
       <footer data-setup-footer="" data-setup-footer-end="" data-copy-interact>
-        <ButtonLink ref={entry} href={done.url}>{done.history_guide ? '导入浏览器历史记录' : '进入 Peach'}</ButtonLink>
+        <ButtonLink ref={entry} href={done.url}>{done.history_guide ? '导入浏览器历史记录' : '打开vvs-club'}</ButtonLink>
       </footer>
     </section>
     </SetupShell>

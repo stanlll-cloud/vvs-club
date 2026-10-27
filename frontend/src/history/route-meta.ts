@@ -37,7 +37,7 @@ export const ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   '/quality-goals': { section: 'quality', title: '高清版', refresh: 'reopen' },
   '/sources': { section: 'cleanup', title: '来源和凭证', refresh: 'reopen' },
   '/subscriptions': { section: 'follow', title: '关注管理', refresh: 'skip' },
-  '/settings/library': { section: 'configuration', title: 'Peach 配置', refresh: 'reopen' },
+  '/settings/library': { section: 'configuration', title: 'vvs-club设置', refresh: 'reopen' },
   '/tasks': { section: 'activity', title: '任务中心', refresh: 'reopen' },
   // 旧直达地址，改写到数据管理页的锚点，没有自己的管理身份。
   '/resource-sync': { title: '数据管理' },

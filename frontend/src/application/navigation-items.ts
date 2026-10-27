@@ -28,7 +28,7 @@ export const MANAGE_SECTIONS = [
   ['follow', '关注管理', 'rss'],
   ['quality', '高清版', 'sparkles'],
   ['activity', '任务中心', 'history'],
-  ['configuration', 'Peach 配置', 'folder-cog'],
+  ['configuration', 'vvs-club设置', 'folder-cog'],
 ] as const satisfies readonly NavigationItem<ManagementKey>[];
 
 export const MANAGE_MENU_SECTIONS: readonly ManagementKey[] = ['stats', 'taste', 'cleanup', 'follow', 'activity', 'configuration'];

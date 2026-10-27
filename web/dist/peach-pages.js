@@ -2,7 +2,7 @@
 (function() {
 	try {
 		var e = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}, t = new e.Error().stack;
-		t && (e._sentryDebugIds = e._sentryDebugIds || {}, e._sentryDebugIds[t] = "caf9e3b1-715b-485d-95c8-a2b25f39bfe5", e._sentryDebugIdIdentifier = "sentry-dbid-caf9e3b1-715b-485d-95c8-a2b25f39bfe5");
+		t && (e._sentryDebugIds = e._sentryDebugIds || {}, e._sentryDebugIds[t] = "cc7d138a-5716-45ca-84c4-36019d2c63f7", e._sentryDebugIdIdentifier = "sentry-dbid-cc7d138a-5716-45ca-84c4-36019d2c63f7");
 	} catch {}
 })();
 var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e = null), t.exports), s = (e, i, o, s) => {
@@ -11165,8 +11165,7 @@ function Bt({ title: e, lede: t, busy: n = !1, children: r }) {
 				className: "flex flex-col gap-1",
 				children: [
 					/* @__PURE__ */ (0, z.jsx)("img", {
-						src: "/peach-logo-128.png",
-						srcSet: "/peach-logo-64.png 64w, /peach-logo-128.png 128w",
+						src: "/vvs-club.svg",
 						sizes: "40px",
 						alt: "",
 						width: 40,
@@ -11214,7 +11213,7 @@ function Wt(e) {
 function B({ data: e }) {
 	let t = Wt(e.status);
 	return (0, j.useEffect)(() => {
-		document.title = `Peach · ${t}`;
+		document.title = `vvs-club · ${t}`;
 	}, [t]), /* @__PURE__ */ (0, z.jsx)(Bt, {
 		title: t,
 		lede: e.status === "404" ? void 0 : e.detail,
@@ -19209,7 +19208,8 @@ pm.displayName = "Input";
 function mm({ data: e }) {
 	let [t, n] = (0, j.useState)(e.error || (e.invalid === "true" ? "访问密码不正确" : ""));
 	return /* @__PURE__ */ (0, z.jsx)(Bt, {
-		title: "Peach",
+		title: "vvs-club",
+		lede: "输入访问密码，打开你的影片空间。",
 		children: /* @__PURE__ */ (0, z.jsxs)("form", {
 			method: "post",
 			action: "/login",
@@ -19624,7 +19624,7 @@ function eh({ variant: e }) {
 		fill: "currentColor",
 		"aria-hidden": "true",
 		focusable: "false",
-		children: /* @__PURE__ */ (0, z.jsx)("path", { d: "M274 178C263 155 255 133 250 114C330 67 432 79 502 164C557 72 666 20 774 61C769 105 754 147 730 179C861 202 950 324 956 477C969 682 812 855 512 977C211 851 54 674 68 475C76 321 144 215 274 178Z" })
+		children: /* @__PURE__ */ (0, z.jsx)("path", { d: "M176 224h192l144 416 144-416h192L608 864H416Z" })
 	});
 }
 // src/react/pages/setup/setup-scene.tsx
@@ -19657,20 +19657,20 @@ function th() {
 	});
 }
 function nh({ step: e }) {
-	let t = e === 0 ? "你的私人媒体空间。" : e === 1 ? "让文件成为馆藏。" : e === 2 ? "从书桌，到手边。" : e === 3 ? "全都准备好了。" : e === "restore" ? "从熟悉的地方继续。" : "馆藏，准备开启。", n = e === 0 ? "把喜欢的内容，整理成自己的收藏。" : e === 1 ? "按媒体库归类，文件保留在原来的位置。" : e === 2 ? "电脑与手机，连接同一套 Peach。" : e === 3 ? "确认后保存，扫描按你的选择开始。" : e === "restore" ? "沿用原来的配置与记录，接着使用。" : "进入 Peach，开始探索你的收藏。";
+	let t = e === 0 ? "收藏再多，也找得到。" : e === 1 ? "从一个文件夹开始。" : e === 2 ? "换个屏幕，继续看。" : e === 3 ? "影片空间，由你定。" : e === "restore" ? "把旧收藏接回来。" : "下一部，从这里找。", n = e === 0 ? "vvs-club把分散的影片、资料和观看记录放在一起。" : e === 1 ? "连接现有目录，扫描时不搬动原文件。" : e === 2 ? "按选定的访问范围，在电脑或手机打开媒体库。" : e === 3 ? "保存目录与访问设置，再决定是否立即扫描。" : e === "restore" ? "选择已有数据目录，保留原来的设置与记录。" : "打开媒体库，找到今天想看的那一部。";
 	return /* @__PURE__ */ (0, z.jsxs)("aside", {
 		"data-setup-scene": "",
 		children: [
 			/* @__PURE__ */ (0, z.jsxs)("div", {
 				"data-setup-scene-brand": "",
-				children: [/* @__PURE__ */ (0, z.jsx)(eh, { variant: "brand" }), /* @__PURE__ */ (0, z.jsx)("span", { children: "Peach" })]
+				children: [/* @__PURE__ */ (0, z.jsx)(eh, { variant: "brand" }), /* @__PURE__ */ (0, z.jsx)("span", { children: "vvs-club" })]
 			}),
 			/* @__PURE__ */ (0, z.jsx)("div", {
 				"data-setup-scene-art": "",
 				"aria-hidden": "true",
 				children: e === 0 ? /* @__PURE__ */ (0, z.jsx)(eh, { variant: "welcome" }) : e === 3 || e === "done" ? /* @__PURE__ */ (0, z.jsx)("img", {
 					"data-setup-original-mark": "",
-					src: "/peach-logo.png",
+					src: "/vvs-club.svg",
 					alt: "",
 					width: 148,
 					height: 148
@@ -19732,7 +19732,7 @@ function rh({ step: e, children: t }) {
 function ih({ done: e }) {
 	let t = (0, j.useRef)(null);
 	return (0, j.useEffect)(() => {
-		document.title = "Peach · 设置完成", t.current?.focus();
+		document.title = "vvs-club · 设置完成", t.current?.focus();
 	}, []), (0, j.useEffect)(() => {
 		let t = e.redirect;
 		if (!t) return;
@@ -19760,14 +19760,14 @@ function ih({ done: e }) {
 							children: [/* @__PURE__ */ (0, z.jsx)("h1", {
 								id: "auth-card-title",
 								className: "text-title-1-semibold text-text-primary",
-								children: "可以开始使用了"
+								children: "影片空间已经打开"
 							}), /* @__PURE__ */ (0, z.jsx)("p", {
 								className: "text-body-regular text-text-secondary",
-								children: "你的 Peach 已准备就绪。"
+								children: "设置已保存，开始整理你的收藏。"
 							})]
 						}), /* @__PURE__ */ (0, z.jsxs)("div", { children: [/* @__PURE__ */ (0, z.jsx)("p", {
 							className: "text-body-regular text-text-primary",
-							children: e.restored ? "已连接已有数据目录。" : e.skip_media ? "可在「媒体库与入库」添加媒体目录并开始扫描。" : e.scan_requested ? "首次扫描已排队，在后台整理媒体库，期间可以照常使用 Peach。" : "稍后在配置页开始扫描媒体库。"
+							children: e.restored ? "已连接已有数据目录。" : e.skip_media ? "可在「媒体库与入库」添加媒体目录并开始扫描。" : e.scan_requested ? "扫描任务已排队，后台处理期间仍可浏览vvs-club。" : "稍后在配置页开始扫描媒体库。"
 						}), /* @__PURE__ */ (0, z.jsx)(Ym, {
 							summary: "运行信息",
 							children: /* @__PURE__ */ (0, z.jsx)(qm, { children: e.facts.map((e) => /* @__PURE__ */ (0, z.jsxs)(Jm, {
@@ -19787,7 +19787,7 @@ function ih({ done: e }) {
 					children: /* @__PURE__ */ (0, z.jsx)(zt, {
 						ref: t,
 						href: e.url,
-						children: e.history_guide ? "导入浏览器历史记录" : "进入 Peach"
+						children: e.history_guide ? "导入浏览器历史记录" : "打开vvs-club"
 					})
 				})
 			]
@@ -22052,11 +22052,11 @@ function K_({ setup: e, onDone: t, onRestore: n }) {
 									ref: s,
 									tabIndex: -1,
 									className: "text-title-1-semibold text-text-primary",
-									children: r === 0 ? "欢迎使用 Peach" : r === 1 ? "你的媒体，放在哪里？" : r === 2 ? "在哪里使用 Peach？" : "准备好开始了"
+									children: r === 0 ? "把收藏安放在vvs-club" : r === 1 ? "先选一个影片文件夹" : r === 2 ? "哪些设备可以打开？" : "检查设置，开启影片空间"
 								}), /* @__PURE__ */ (0, z.jsx)("p", {
 									"data-copy-key": `setup.description.${r}`,
 									className: "text-body-regular text-text-secondary",
-									children: r === 0 ? "花一点时间，让 Peach 更适合你。" : r === 1 ? "连接已有文件夹，或先进入界面看看。" : r === 2 ? "选择访问范围，也可以为馆藏设置密码。" : "确认这些选择，剩下的交给 Peach。"
+									children: r === 0 ? "连上媒体目录，按自己的方式找片、看片、留记录。" : r === 1 ? "选择本地或已挂载的目录；也可以暂时跳过。" : r === 2 ? "只在本机使用，或允许同一网络的设备访问。" : "保存后，vvs-club会按你选定的方式处理媒体库。"
 								})]
 							}, r),
 							/* @__PURE__ */ (0, z.jsx)("div", {
@@ -22068,30 +22068,30 @@ function K_({ setup: e, onDone: t, onRestore: n }) {
 											"data-setup-welcome-copy": "",
 											children: [/* @__PURE__ */ (0, z.jsx)("strong", {
 												className: "text-body-medium",
-												children: "连接你的媒体库"
+												children: "文件有位置，收藏有条理"
 											}), /* @__PURE__ */ (0, z.jsx)("p", {
 												className: "text-body-2-regular text-text-secondary",
-												children: "本地文件夹与已挂载的网盘，都可以整理。"
+												children: "把硬盘与已挂载的网盘目录放进同一个媒体库。"
 											})]
 										})] }),
 										/* @__PURE__ */ (0, z.jsxs)("li", { children: [/* @__PURE__ */ (0, z.jsx)(om, {}), /* @__PURE__ */ (0, z.jsxs)("div", {
 											"data-setup-welcome-copy": "",
 											children: [/* @__PURE__ */ (0, z.jsx)("strong", {
 												className: "text-body-medium",
-												children: "更快找到想看的"
+												children: "记不清片名，也有线索"
 											}), /* @__PURE__ */ (0, z.jsx)("p", {
 												className: "text-body-2-regular text-text-secondary",
-												children: "用搜索、标签和收藏浏览馆藏。"
+												children: "从人物、标签与收藏中缩小范围。"
 											})]
 										})] }),
 										/* @__PURE__ */ (0, z.jsxs)("li", { children: [/* @__PURE__ */ (0, z.jsx)(im, {}), /* @__PURE__ */ (0, z.jsxs)("div", {
 											"data-setup-welcome-copy": "",
 											children: [/* @__PURE__ */ (0, z.jsx)("strong", {
 												className: "text-body-medium",
-												children: "按你的习惯播放"
+												children: "找到以后，接着看"
 											}), /* @__PURE__ */ (0, z.jsx)("p", {
 												className: "text-body-2-regular text-text-secondary",
-												children: "播放与外观偏好，可以随时在设置里调整。"
+												children: "字幕、播放方式与外观由你选择。"
 											})]
 										})] })
 									]
@@ -22627,10 +22627,10 @@ function J_() {
 							children: [/* @__PURE__ */ (0, z.jsx)("h1", {
 								id: "auth-card-title",
 								className: "text-title-1-semibold text-text-primary",
-								children: "欢迎使用 Peach"
+								children: "把收藏安放在vvs-club"
 							}), /* @__PURE__ */ (0, z.jsx)("p", {
 								className: "text-body-regular text-text-secondary",
-								children: "花一点时间，让 Peach 更适合你。"
+								children: "先连接媒体目录，再选择访问方式。"
 							})]
 						}),
 						e.kind === "loading" ? /* @__PURE__ */ (0, z.jsxs)("div", {
@@ -22675,4 +22675,4 @@ E();
 var X_ = document.getElementById("peach-page"), Z_ = X_ ? Y_[X_.dataset.page ?? ""] : void 0;
 X_ && Z_ && (0, M.createRoot)(X_).render(/* @__PURE__ */ (0, z.jsx)(Z_, { data: { ...X_.dataset } }));
 
-//# debugId=caf9e3b1-715b-485d-95c8-a2b25f39bfe5
+//# debugId=cc7d138a-5716-45ca-84c4-36019d2c63f7
