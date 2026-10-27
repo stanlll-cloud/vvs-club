@@ -33,7 +33,8 @@ def main() -> None:
     module_cache = source.parents[1] / 'build/swift-module-cache'
     module_cache.mkdir(parents=True, exist_ok=True)
     subprocess.run([
-        'xcrun', 'swiftc', '-swift-version', '5', '-O', '-framework', 'AppKit',
+        'xcrun', 'swiftc', '-swift-version', '5', '-O', '-target',
+        f'{platform.machine()}-apple-macos13.0', '-framework', 'AppKit',
         '-framework', 'WebKit', '-module-cache-path', str(module_cache),
         str(source / 'VVSClub.swift'), '-o', str(executable),
     ], check=True)

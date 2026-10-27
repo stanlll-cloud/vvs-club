@@ -238,7 +238,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         back?.isEnabled = active?.canGoBack ?? false
         forward?.isEnabled = active?.canGoForward ?? false
         reload?.isEnabled = active != nil
-        external?.isEnabled = active?.url != nil
+        external?.isEnabled = current != nil
         if let key = current {
             pageTitle.stringValue = key == -1 ? "本地媒体库" : sites[key].name
             locationLabel.stringValue = active?.url?.host ?? "正在连接…"
@@ -248,7 +248,9 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     @objc private func goForward() { active?.goForward() }
     @objc private func refresh() { active?.reload() }
     @objc private func openExternal() {
-        if let url = active?.url, validURL(url.absoluteString) != nil { NSWorkspace.shared.open(url) }
+        guard let key = current else { return }
+        let configured = key == -1 ? UserDefaults.standard.string(forKey: "libraryURL") ?? "http://127.0.0.1:8900" : sites[key].url
+        if let url = active?.url ?? validURL(configured), validURL(url.absoluteString) != nil { NSWorkspace.shared.open(url) }
     }
     @objc private func configureLocal() {
         let alert = NSAlert()
