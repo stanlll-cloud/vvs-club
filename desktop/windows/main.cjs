@@ -101,7 +101,7 @@ function startWorker(kind) {
   if(app.isPackaged){command=path.join(process.resourcesPath,'backend','vvs-service.exe');args=[kind==='cloud'?'--cloud':'--media'];}
   else {command=process.platform==='win32'?path.resolve(base,'../../.venv/Scripts/python.exe'):path.resolve(base,'../../.venv/bin/python');args=[path.join(base,'backend.py'),kind==='cloud'?'--cloud':'--media'];}
   if(kind==='cloud')args.push('--binary',app.isPackaged?path.join(process.resourcesPath,'openlist.exe'):path.resolve(base,'../../build/vvs-windows-dependencies/openlist.exe'),'--data',path.join(data,'cloud'));
-  const child=spawn(command,args,{windowsHide:true,env:{...process.env,VVS_DATA_ROOT:data},stdio:['ignore','pipe','ignore']});
+  const child=spawn(command,args,{windowsHide:true,env:{...process.env,VVS_DATA_ROOT:data,PYTHONUTF8:'1',PYTHONIOENCODING:'utf-8'},stdio:['ignore','pipe','ignore']});
   let buffer='',done=false,resolve,reject;
   const promise=new Promise((a,b)=>{resolve=a;reject=b});
   const timer=setTimeout(()=>{if(!done){done=true;reject(Error('本机组件启动超时，请重启软件。'));}},100000);

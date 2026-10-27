@@ -85,7 +85,7 @@ class CloudBridge:
                 environment.setdefault(scheme.upper() + '_PROXY', address)
         environment['OPENLIST_ADMIN_PASSWORD'] = secrets.token_urlsafe(48)
         environment['NO_PROXY'] = environment.get('NO_PROXY', '') + ',127.0.0.1,localhost'
-        result = subprocess.run([*args, 'admin', 'token'], capture_output=True, text=True,
+        result = subprocess.run([*args, 'admin', 'token'], capture_output=True, text=True, encoding="utf-8",
                                 timeout=60, env=environment, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         token_text = result.stdout.split('Admin token:')[-1].strip()
         self.admin_token = next((line.strip() for line in token_text.splitlines()

@@ -8,6 +8,9 @@ import sys
 
 def main():
     multiprocessing.freeze_support()
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     root = Path(__file__).resolve().parents[2]
     for directory in (root / 'src', root / 'desktop/macos'):
         sys.path.insert(0, str(directory))

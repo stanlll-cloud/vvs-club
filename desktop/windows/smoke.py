@@ -20,6 +20,7 @@ def main():
             sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
         env={k:v for k,v in os.environ.items() if not k.startswith('PEACH_')}
         env['PEACH_DATA_ROOT']=directory
+        env.update(PYTHONUTF8='1',PYTHONIOENCODING='utf-8')
         log_path=Path(directory)/'backend.log'
         log=log_path.open('wb')
         process=subprocess.Popen([str(args.backend.resolve()),'--vvs-cli','serve','--host','127.0.0.1','--port',str(port),'--setup','--no-mdns','--no-ledger-sync'],env=env,stdout=log,stderr=log,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)

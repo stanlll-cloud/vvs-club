@@ -38,7 +38,7 @@ def main():
     manifest=runpy.run_path(str(ROOT/'src/peach/bundle_resources.py'))
     args=[sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--console','--name','vvs-service',
           '--distpath',str(ROOT/'build/vvs-windows-backend'),'--workpath',str(ROOT/'build/vvs-windows-pyinstaller'),'--specpath',str(directory),
-          '--paths',str(ROOT/'src'),'--paths',str(ROOT/'desktop/macos'),
+          '--paths',str(ROOT/'src'),'--paths',str(ROOT/'desktop/macos'),'--python-option','X utf8',
           '--collect-submodules','peach','--collect-all','curl_cffi','--collect-all','resvg_py','--copy-metadata','sentry-sdk',
           '--hidden-import','cloud_service','--hidden-import','service',
           '--hidden-import','uvicorn.logging','--hidden-import','uvicorn.loops.auto','--hidden-import','uvicorn.protocols.http.auto',
