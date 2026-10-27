@@ -23,8 +23,8 @@ PROVIDERS = {
     'baidu': {'name': '百度网盘', 'driver': 'BaiduNetdisk', 'oauth': 'baiduyun_go', 'root': '/'},
     'aliyun': {'name': '阿里网盘', 'driver': 'AliyundriveOpen', 'oauth': 'alicloud_go', 'root': 'root'},
     '115': {'name': '115 网盘', 'driver': '115 Open', 'oauth': '115cloud_go', 'root': '0'},
-    'quark': {'name': '夸克网盘', 'driver': None, 'note': '扫码连接适配中，暂未接通账号登录。'},
-    'terabox': {'name': 'TeraBox', 'driver': None, 'note': '暂未接通无需复制凭据的登录方式。'},
+    'quark': {'name': '夸克网盘', 'driver': 'Quark', 'oauth': 'quark_cookie', 'root': '0', 'note': '使用夸克官网的扫码或验证码登录，完成后验证盘内目录。'},
+    'terabox': {'name': 'TeraBox', 'driver': 'Terabox', 'oauth': 'terabox_cookie', 'root': '/', 'note': '使用 TeraBox 官网当前提供的登录方式，完成后验证盘内目录。'},
 }
 VIDEO = {'.mp4', '.mkv', '.avi', '.mov', '.m4v', '.ts', '.webm', '.wmv', '.flv', '.mpg', '.mpeg'}
 LOCAL = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -147,7 +147,7 @@ class CloudBridge:
         stores = {item['mount_path']: item for item in self.storages()}
         return {'providers': [dict(id=key, name=item['name'], available=bool(item['driver']),
             note=item.get('note', '登录授权后，选择云端目录开始扫描。'),
-            connected=stores.get('/' + key, {}).get('status') == 'work',
+            configured=('/' + key) in stores, connected=stores.get('/' + key, {}).get('status') == 'work',
             job=self.jobs.get(key), scan=self.state['scans'].get(key)) for key, item in PROVIDERS.items()]}
 
     @staticmethod
@@ -177,22 +177,33 @@ class CloudBridge:
             raise ValueError('该网盘尚未接通账号登录。')
         if tokens.get('driver_txt') != definition['oauth']:
             raise ValueError('授权来源与所选网盘不一致，请重新登录。')
-        refresh = tokens.get('refresh_token')
-        access = tokens.get('access_token')
-        if not isinstance(refresh, str) or not 8 <= len(refresh) <= 16384:
-            raise ValueError('没有取得有效授权，请重新登录。')
-        if provider == '115' and not isinstance(access, str):
-            raise ValueError('115 授权未完整返回，请重新登录。')
-        addition = {'refresh_token': refresh, 'root_folder_id': definition['root']}
-        if provider == 'baidu':
-            addition.update(root_folder_path='/', use_online_api=True,
-                api_url_address='https://api.oplist.org/baiduyun/renewapi', download_api='official',
-                custom_crack_ua='pan.baidu.com', upload_thread='1')
-        elif provider == 'aliyun':
-            addition.update(use_online_api=True, api_url_address='https://api.oplist.org/alicloud/renewapi',
-                drive_type='resource', alipan_type='default', remove_way='trash', livp_download_format='jpeg')
+        if provider in {'quark', 'terabox'}:
+            cookie = tokens.get('cookie')
+            required = '__puus=' if provider == 'quark' else 'ndus='
+            if not isinstance(cookie, str) or not 8 <= len(cookie) <= 32768 or required not in cookie or '\r' in cookie or '\n' in cookie:
+                raise ValueError('没有取得本网盘的登录会话，请在官网登录后再确认。')
+            addition = {'cookie': cookie, 'root_folder_id': definition['root']}
+            if provider == 'quark':
+                addition.update(order_by='none', order_direction='asc', use_transcoding_address=False, only_list_video_file=False)
+            else:
+                addition.update(root_folder_path='/', download_api='official', order_by='name', order_direction='asc')
         else:
-            addition.update(access_token=access, limit_rate=1, page_size=200)
+            refresh = tokens.get('refresh_token')
+            access = tokens.get('access_token')
+            if not isinstance(refresh, str) or not 8 <= len(refresh) <= 16384:
+                raise ValueError('没有取得有效授权，请重新登录。')
+            if provider == '115' and not isinstance(access, str):
+                raise ValueError('115 授权未完整返回，请重新登录。')
+            addition = {'refresh_token': refresh, 'root_folder_id': definition['root']}
+            if provider == 'baidu':
+                addition.update(root_folder_path='/', use_online_api=True,
+                    api_url_address='https://api.oplist.org/baiduyun/renewapi', download_api='official',
+                    custom_crack_ua='pan.baidu.com', upload_thread='1')
+            elif provider == 'aliyun':
+                addition.update(use_online_api=True, api_url_address='https://api.oplist.org/alicloud/renewapi',
+                    drive_type='resource', alipan_type='default', remove_way='trash', livp_download_format='jpeg')
+            else:
+                addition.update(access_token=access, limit_rate=1, page_size=200)
         previous = next((item for item in self.storages() if item['mount_path'] == '/' + provider), None)
         if previous:
             raise ValueError('该网盘已配置。请先在网盘设备管理中处理原授权，再重新连接。')

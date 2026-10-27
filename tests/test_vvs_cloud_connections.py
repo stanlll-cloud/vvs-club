@@ -108,3 +108,49 @@ class CloudBridgeRequestTests(unittest.TestCase):
         with self.opener.open(urllib.request.Request(self.url + '/api/status',
                 headers={'X-VVS-Capability': 'test-api-capability'})) as response:
             self.assertEqual(json.load(response), {'providers': []})
+
+
+class CloudSessionTests(unittest.TestCase):
+    def test_cookie_session_must_match_the_selected_provider(self):
+        bridge = object.__new__(cloud.CloudBridge)
+        for provider, payload in (
+            ('quark', {'driver_txt': 'quark_cookie', 'cookie': 'ndus=sample-session'}),
+            ('terabox', {'driver_txt': 'terabox_cookie', 'cookie': '__puus=sample-session'}),
+            ('quark', {'driver_txt': 'quark_cookie', 'cookie': '__puus=sample\r\nInjected: value'}),
+        ):
+            with self.subTest(provider=provider), self.assertRaises(ValueError):
+                bridge.connect(provider, payload)
+
+    def test_cookie_is_only_passed_to_the_local_connector_storage(self):
+        bridge = object.__new__(cloud.CloudBridge)
+        stores, additions = [], []
+        bridge.storages = lambda: stores.copy()
+        bridge.listing = lambda *_: {'path': '/quark', 'items': []}
+        def api(path, data=None):
+            self.assertEqual(path, '/api/admin/storage/create')
+            self.assertEqual(data['driver'], 'Quark')
+            additions.append(json.loads(data['addition']))
+            stores.append({'id': 1, 'mount_path': '/quark'})
+            return {'id': 1}
+        bridge.api = api
+        result = bridge.connect('quark', {'driver_txt': 'quark_cookie', 'cookie': '__puus=sample-session; __pus=sample-id'})
+        self.assertTrue(result['connected'])
+        self.assertEqual(additions[0]['cookie'], '__puus=sample-session; __pus=sample-id')
+
+    def test_connector_bootstrap_binds_only_to_loopback(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            process = SimpleNamespace(poll=lambda: None, terminate=lambda: None, wait=lambda timeout: 0)
+            result = SimpleNamespace(returncode=0, stdout='Admin token:\n' + 'a' * 32)
+            with patch.object(cloud.subprocess, 'run', return_value=result) as runner, \
+                    patch.object(cloud.subprocess, 'Popen', return_value=process), \
+                    patch.object(cloud.CloudBridge, 'api', return_value={'content': []}):
+                bridge = cloud.CloudBridge(Path('/fake/openlist'), Path(temporary))
+                config = json.loads((Path(temporary) / 'connector/config.json').read_text())
+                self.assertTrue(config['force'])
+                self.assertEqual(config['scheme']['address'], '127.0.0.1')
+                self.assertEqual(config['cors']['allow_origins'], [bridge.core_url])
+                self.assertFalse(config['tls_insecure_skip_verify'])
+                args, kwargs = runner.call_args
+                self.assertIn('OPENLIST_ADMIN_PASSWORD', kwargs['env'])
+                self.assertNotIn(kwargs['env']['OPENLIST_ADMIN_PASSWORD'], args[0])
+                bridge.close()
