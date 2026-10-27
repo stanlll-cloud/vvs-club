@@ -4,7 +4,7 @@
 
 **vvs-club · 你的私人放映空间。**
 
-![vvs-club Mac 应用界面](docs/assets/vvs-club-preview.jpg)
+![vvs-club Mac 应用界面](resources/vvs-club-preview.jpg)
 
 把散落的影片整理成自己的媒体库，也给常用的在线站点留一个固定入口。vvs-club 面向个人使用：目录怎么放、资料怎么补、今天看什么，由你决定。
 
@@ -60,6 +60,6 @@ vvs-club 基于 [Peach](https://github.com/peach-mitao/peach) 的开源代码。
 
 三网套餐可选，具体线路、支持运营商和地区以所选套餐的官方说明为准。
 
-[![立即开通](docs/assets/jms-button.svg)](https://justmysocks.net/members/aff.php?aff=39372)
+[![立即开通](resources/jms-button.svg)](https://justmysocks.net/members/aff.php?aff=39372)
 
 这是项目维护者的推广链接，通过该入口注册或购买，维护者可能获得佣金。此服务与软件使用无绑定关系，vvs-club 不是该服务的官方客户端。

@@ -154,3 +154,45 @@ class CloudSessionTests(unittest.TestCase):
                 self.assertIn('OPENLIST_ADMIN_PASSWORD', kwargs['env'])
                 self.assertNotIn(kwargs['env']['OPENLIST_ADMIN_PASSWORD'], args[0])
                 bridge.close()
+
+
+class CloudPlaybackTests(unittest.TestCase):
+    def test_playback_uses_only_an_indexed_file_and_preserves_range(self):
+        class FakeCore(cloud.BaseHTTPRequestHandler):
+            def log_message(self, *_):
+                pass
+            def do_GET(self):
+                self.server.received = (self.path, self.headers.get('Range'), self.headers.get('Authorization'))
+                self.send_response(206)
+                self.send_header('Content-Length', '4')
+                self.send_header('Content-Range', 'bytes 2-5/10')
+                self.send_header('Content-Type', 'video/mp4')
+                self.end_headers()
+                self.wfile.write(b'2345')
+        core = cloud.ThreadingHTTPServer(('127.0.0.1', 0), FakeCore)
+        threading.Thread(target=core.serve_forever, daemon=True).start()
+        app = cloud.ThreadingHTTPServer(('127.0.0.1', 0), cloud.Handler)
+        def api(path, data=None):
+            self.assertEqual(path, '/api/fs/get')
+            self.assertEqual(data['path'], '/baidu/sample.mp4')
+            return {'sign': 'test-file-sign'}
+        app.bridge = SimpleNamespace(state={'play_key': 'sample-play-capability',
+            'records': {'video1': {'path': '/baidu/sample.mp4'}}}, api=api,
+            core_url=f'http://127.0.0.1:{core.server_port}')
+        threading.Thread(target=app.serve_forever, daemon=True).start()
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        try:
+            request = urllib.request.Request(f'http://127.0.0.1:{app.server_port}/play/video1?key=sample-play-capability', headers={'Range': 'bytes=2-5'})
+            with opener.open(request, timeout=3) as response:
+                self.assertEqual(response.status, 206)
+                self.assertEqual(response.headers['Content-Range'], 'bytes 2-5/10')
+                self.assertEqual(response.read(), b'2345')
+            self.assertEqual(core.received[1], 'bytes=2-5')
+            self.assertIsNone(core.received[2])
+            self.assertTrue(core.received[0].startswith('/p/baidu/sample.mp4?force=true'))
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                opener.open(f'http://127.0.0.1:{app.server_port}/play/unknown?key=sample-play-capability')
+            self.assertEqual(error.exception.code, 403)
+        finally:
+            app.shutdown(); app.server_close()
+            core.shutdown(); core.server_close()

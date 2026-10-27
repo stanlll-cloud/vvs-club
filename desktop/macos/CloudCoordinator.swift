@@ -124,8 +124,7 @@ final class CloudCoordinator: NSObject, WKScriptMessageHandler {
         guard let driver = drivers[provider] else { failure("该网盘尚未接通账号登录。"); return }
         let flow = CloudAuthorization(provider: provider, driver: driver) { [weak self] tokens in
             guard let self = self else { return }
-            self.authorization = nil
-            guard let tokens = tokens else { self.failure("授权已取消，未读取网盘。"); return }
+            guard let tokens = tokens else { self.authorization = nil; self.failure("登录窗口已关闭。"); return }
             self.connect(provider, tokens: tokens)
         }
         authorization = flow
@@ -150,8 +149,13 @@ final class CloudCoordinator: NSObject, WKScriptMessageHandler {
                 guard let self = self else { return }
                 self.pendingProvider = nil
                 if valid, let encoded = self.jsonLiteral(provider) {
+                    self.authorization?.connectionVerified()
+                    self.authorization = nil
                     self.web?.evaluateJavaScript("window.cloudConnected?.(\(encoded))", completionHandler: nil)
-                } else { self.failure("授权尚未连接成功，请检查网盘授权或稍后重试。") }
+                } else {
+                    if self.authorization?.connectionFailed() != true { self.authorization = nil }
+                    self.failure("授权尚未连接成功，请检查网盘授权或稍后重试。")
+                }
             }
             session.finishTasksAndInvalidate()
         }.resume()
@@ -177,6 +181,9 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
     private let provider: String
     private let driver: String
     private var completed = false
+    private var verifying = false
+    private var automaticAttempted = false
+    private var loginTimer: Timer?
     private var webSession: Bool { provider == "quark" || provider == "terabox" }
     private let loginHint = NSTextField(wrappingLabelWithString: "请在网盘官网完成登录。扫码、短信或邮箱验证码以该网盘实际提供的方式为准。")
     private var window: NSWindow!
@@ -200,7 +207,7 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
             let root = NSView()
             let toolbar = NSStackView()
             toolbar.spacing = 12
-            let done = NSButton(title: "我已完成登录，连接网盘", target: self, action: #selector(confirmWebSession))
+            let done = NSButton(title: "我已完成登录，连接网盘", target: self, action: #selector(confirmWebSessionManually))
             done.bezelStyle = .rounded
             done.heightAnchor.constraint(equalToConstant: 44).isActive = true
             loginHint.textColor = .secondaryLabelColor
@@ -230,6 +237,9 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
         if webSession {
             let target = provider == "quark" ? "https://pan.quark.cn" : "https://www.terabox.com"
             browser.load(URLRequest(url: URL(string: target)!))
+            loginTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.tryAutomaticLogin() }
+            }
             return
         }
         let prefixes = ["baidu": "baiduyun", "aliyun": "alicloud", "115": "115cloud"]
@@ -273,8 +283,15 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
             self.browser.load(URLRequest(url: url))
         }
     }
-    @objc private func confirmWebSession() {
-        guard webSession, !completed else { return }
+    private func tryAutomaticLogin() {
+        guard !automaticAttempted, !verifying, !completed, let url = browser?.url else { return }
+        let path = url.path.lowercased()
+        let loggedInPage = provider == "quark" ? path.hasPrefix("/list") : (path.hasPrefix("/disk") || path.hasPrefix("/main"))
+        if loggedInPage { confirmWebSession(automatic: true) }
+    }
+    @objc private func confirmWebSessionManually() { confirmWebSession(automatic: false) }
+    private func confirmWebSession(automatic: Bool) {
+        guard webSession, !completed, !verifying else { return }
         browser.configuration.websiteDataStore.httpCookieStore.getAllCookies { [weak self] cookies in
             guard let self = self, !self.completed else { return }
             let domains = self.provider == "quark" ? ["quark.cn"] : ["terabox.com", "1024terabox.com", "dubox.com"]
@@ -286,9 +303,10 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
             }
             let required = self.provider == "quark" ? "__puus" : "ndus"
             guard valid.contains(where: { $0.name == required && !$0.value.isEmpty }) else {
-                self.loginHint.stringValue = "尚未取得网盘登录状态。请先在下方官网完成登录，再点右侧按钮。"
+                if !automatic { self.loginHint.stringValue = "尚未取得网盘登录状态。请先在下方官网完成登录，再点右侧按钮。" }
                 return
             }
+            if automatic { self.automaticAttempted = true }
             let cookie = valid.map { "\($0.name)=\($0.value)" }.joined(separator: "; ")
             self.finish(["driver_txt": self.driver, "cookie": cookie])
         }
@@ -307,9 +325,36 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
         if let url = navigationAction.request.url, allowed(url) { browser.load(URLRequest(url: url)) }
         return nil
     }
-    private func finish(_ tokens: [String: Any]?) {
-        guard !completed else { return }
+    func connectionVerified() { closeLoginWindow() }
+    func connectionFailed() -> Bool {
+        verifying = false
+        if webSession {
+            loginHint.stringValue = "登录会话已取得，但目录验证失败。请保持登录，点右侧按钮重试。"
+            return true
+        }
+        closeLoginWindow()
+        return false
+    }
+    private func closeLoginWindow() {
         completed = true
+        loginTimer?.invalidate()
+        loginTimer = nil
+        window?.orderOut(nil)
+        window?.delegate = nil
+        browser?.stopLoading()
+        browser?.navigationDelegate = nil
+    }
+    private func finish(_ tokens: [String: Any]?) {
+        guard !completed, !verifying || tokens == nil else { return }
+        if let tokens = tokens {
+            verifying = true
+            loginHint.stringValue = "正在验证云端文件列表，请稍候…"
+            completion(tokens)
+            return
+        }
+        completed = true
+        loginTimer?.invalidate()
+        loginTimer = nil
         window?.orderOut(nil)
         window?.delegate = nil
         browser?.stopLoading()
