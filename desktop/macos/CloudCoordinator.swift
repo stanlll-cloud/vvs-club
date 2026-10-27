@@ -113,6 +113,10 @@ final class CloudCoordinator: NSObject, WKScriptMessageHandler {
               let body = message.body as? [String: String], let action = body["action"] else { return }
         if action == "mounted" { onMounted?(); return }
         guard let provider = body["provider"], ["baidu", "aliyun", "115", "quark", "terabox"].contains(provider) else { return }
+        if action == "photos", provider == "terabox" {
+            if let url = URL(string: "https://1024terabox.com/s/1Ki8slu-MJrb6yMkz93kFMg") { NSWorkspace.shared.open(url) }
+            return
+        }
         if action == "import", let path = body["path"] {
             let expected = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/vvs-club/cloud/index/" + provider).standardizedFileURL.path
             if URL(fileURLWithPath: path).standardizedFileURL.path == expected { onImport?(path, provider) }
