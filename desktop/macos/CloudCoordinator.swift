@@ -203,7 +203,7 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
         browser.uiDelegate = self
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 720), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         window.title = "网盘登录授权 · OpenList"
-        if webSession {
+        if webSession || provider == "baidu" {
             let root = NSView()
             let toolbar = NSStackView()
             toolbar.spacing = 12
@@ -213,7 +213,15 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
             loginHint.textColor = .secondaryLabelColor
             loginHint.font = .systemFont(ofSize: 12)
             toolbar.addArrangedSubview(loginHint)
-            toolbar.addArrangedSubview(done)
+            if provider == "baidu" {
+                loginHint.stringValue = "先在百度官网选择登录方式，完成后点「继续授权」。登录不等于已接入网盘。"
+                let login = NSButton(title: "扫码 / 验证码登录", target: self, action: #selector(openBaiduLogin))
+                login.bezelStyle = .rounded
+                toolbar.addArrangedSubview(login)
+                let authorize = NSButton(title: "继续授权", target: self, action: #selector(loadOAuthRequest))
+                authorize.bezelStyle = .rounded
+                toolbar.addArrangedSubview(authorize)
+            } else { toolbar.addArrangedSubview(done) }
             toolbar.translatesAutoresizingMaskIntoConstraints = false
             browser.translatesAutoresizingMaskIntoConstraints = false
             root.addSubview(toolbar)
@@ -242,6 +250,15 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
             }
             return
         }
+        loadOAuthRequest()
+    }
+    @objc private func openBaiduLogin() {
+        guard provider == "baidu", !completed, !verifying else { return }
+        // 与后续 OAuth 共用专用临时会话；不读取或提取百度网页登录 Cookie。
+        browser.load(URLRequest(url: URL(string: "https://pan.baidu.com/")!))
+    }
+    @objc private func loadOAuthRequest() {
+        guard !completed, !verifying, !webSession else { return }
         let prefixes = ["baidu": "baiduyun", "aliyun": "alicloud", "115": "115cloud"]
         var url = URLComponents(string: "https://api.oplist.org/\(prefixes[provider]!)/requests")!
         url.queryItems = [URLQueryItem(name: "driver_txt", value: driver), URLQueryItem(name: "server_use", value: "true"), URLQueryItem(name: "client_uid", value: ""), URLQueryItem(name: "client_key", value: ""), URLQueryItem(name: "secret_key", value: "")]
