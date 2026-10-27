@@ -20,7 +20,7 @@
 
 ### 在线影视区
 
-Mac 窗口左侧为站点列表，右侧为独立网页浏览面板，带后退、前进、刷新和外部打开。已配置的六个入口为 PigAV、JAVHDPorn、SpankBang、Pornhub 中文站、MissAV 和 xHamster；各有独立按钮，不会自动加载站点首页。
+Mac 窗口左侧为站点列表，右侧为独立网页浏览面板，带后退、前进、刷新和外部打开。已配置的七个入口为 PigAV、JAVHDPorn、SpankBang、Pornhub 中文站、MissAV、Jable 和 xHamster；各有独立按钮，不会自动加载站点首页。
 
 此处只提供浏览入口。网页内容、账户与播放功能由原站提供，访问与验证规则照常生效。WebKit 不支持的播放器或无法连接的网站可在默认浏览器打开。不能保证所有网站都能播放。
 
@@ -63,3 +63,5 @@ vvs-club 基于 [Peach](https://github.com/peach-mitao/peach) 的开源代码。
 [![立即开通](resources/jms-button.svg)](https://justmysocks.net/members/aff.php?aff=39372)
 
 这是项目维护者的推广链接，通过该入口注册或购买，维护者可能获得佣金。此服务与软件使用无绑定关系，vvs-club 不是该服务的官方客户端。
+
+源码运行需要 Python 3.14 或更高；安装步骤见[运行文档](docs/OPERATIONS.md)。

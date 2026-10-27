@@ -18,7 +18,7 @@ python3 desktop/macos/build.py
 
 ## 在线影视区
 
-入口由 [sites.json](sites.json) 维护，每个项目包含 `name` 和 HTTPS `url`。当前包含使用者指定的 PigAV、JAVHDPorn、SpankBang、Pornhub 中文站、MissAV 和 xHamster。修改后重新构建即可。站点之间不复用应用的访问密码，也不会从系统浏览器导入登录信息。
+入口由 [sites.json](sites.json) 维护，每个项目包含 `name` 和 HTTPS `url`。当前包含使用者指定的 PigAV、JAVHDPorn、SpankBang、Pornhub 中文站、MissAV、Jable 和 xHamster。修改后重新构建即可。站点之间不复用应用的访问密码，也不会从系统浏览器导入登录信息。
 
 右侧是独立的顶层 `WKWebView`，没有使用 iframe，也不移除网站响应头、修改证书信任或代理网站内容。网站的登录、年龄、地区与访问验证仍由使用者在原站完成。自动弹窗不启用；新窗口链接由默认浏览器打开。站点若不兼容，可使用工具栏的外部打开按钮。
 
