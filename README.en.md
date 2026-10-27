@@ -16,7 +16,7 @@ vvs-club combines a personal media-library workflow with a macOS window for your
 
 ## Windows
 
-A Windows 10/11 x64 desktop build is being prepared. See [Windows build instructions](desktop/windows/README.md) and the `vvs-club Windows` Actions workflow. It is not a verified release until the build and runtime checks produce a successful artifact.
+The [Windows 10/11 x64 preview](https://github.com/stanlll-cloud/vvs-club/releases/tag/v0.1.0-windows-preview) includes an installer and ZIP. Frozen backend, cloud bridge, packaged UI, bookmark persistence and browser isolation checks passed. Third-party sign-in and video playback still need validation on real devices. See [Windows instructions](desktop/windows/README.md).
 
 ## Start on macOS
 

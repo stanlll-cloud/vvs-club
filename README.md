@@ -50,7 +50,7 @@
 
 ## Windows 预览版
 
-Windows 10/11 x64 构建入口见 [Windows 说明](desktop/windows/README.md)。安装程序与 ZIP 由 Actions 的 `vvs-club Windows` 工作流生成，只有成功构建和后端启动检查通过后才提供产物。真实 Windows 设备、第三方账号和具体影片仍需验收，尚不能视为已验证的稳定发行版。
+Windows 10/11 x64 预览版已完成构建，提供安装程序与 ZIP：[下载 Windows 预览版](https://github.com/stanlll-cloud/vvs-club/releases/tag/v0.1.0-windows-preview)。冻结后端、网盘连接页面、打包界面、书签保存与网页隔离检查已通过，详见 [Windows 说明](desktop/windows/README.md)。真实设备上的第三方登录与具体影片播放仍需验收。
 
 源码构建需要 Python 3.14 或更高；Windows 安装包采用内置运行时。
 
