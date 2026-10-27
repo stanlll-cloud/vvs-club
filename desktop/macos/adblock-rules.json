@@ -1,0 +1,195 @@
+[
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?doubleclick\\.net[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?googlesyndication\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?googleadservices\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?adservice\\.google\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?adsrvr\\.org[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?popads\\.net[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?popcash\\.net[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?exoclick\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?exosrv\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?trafficjunky\\.net[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?trafficjunky\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?juicyads\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?jads\\.co[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?whitetrafsa\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?javhd-trk\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?javhdporn\\.live[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?tsyndicate\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?realsrv\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?highperformanceformat\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?highperformancegate\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?topcreativeformat\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://([^/]+\\.)?adsterra\\.com[/:]"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://cdn\\.pornfhd\\.com/files/banner_"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": ".*"
+    },
+    "action": {
+      "type": "css-display-none",
+      "selector": ".adsbygoogle, [data-ad-slot], .ad-banner, .advertisement, [id^=\"juicyads\"], iframe[src*=\"/adshow.php\"]"
+    }
+  }
+]

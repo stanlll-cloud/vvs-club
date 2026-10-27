@@ -39,7 +39,7 @@ def main() -> None:
         'xcrun', 'swiftc', '-swift-version', '5', '-O', '-target',
         f'{platform.machine()}-apple-macos13.0', '-framework', 'AppKit',
         '-framework', 'WebKit', '-module-cache-path', str(module_cache),
-        str(source / 'VVSClub.swift'), str(source / 'CloudCoordinator.swift'), str(source / 'Bookmarks.swift'), '-o', str(executable),
+        str(source / 'VVSClub.swift'), str(source / 'CloudCoordinator.swift'), str(source / 'Bookmarks.swift'), str(source / 'AdBlocker.swift'), '-o', str(executable),
     ], check=True)
     plist = {
         'CFBundleExecutable': 'vvs-club', 'CFBundleName': 'vvs-club',
@@ -62,6 +62,7 @@ def main() -> None:
             subprocess.run(['sips', '-z', str(pixels), str(pixels), str(logo), '--out', str(iconset / name)], check=True, stdout=subprocess.DEVNULL)
     subprocess.run(['iconutil', '-c', 'icns', str(iconset), '-o', str(resources / 'vvs-club.icns')], check=True)
     shutil.copy2(source / 'sites.json', resources / 'sites.json')
+    shutil.copy2(source / 'adblock-rules.json', resources / 'adblock-rules.json')
     (resources / 'runtime.json').write_text(json.dumps({'backendRoot': str(source.parents[1])}))
     # 固定官方发布版本及 GitHub 发布资产摘要，更新时必须一并核对。
     openlist_version = 'v4.2.9'

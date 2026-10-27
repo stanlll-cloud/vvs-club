@@ -72,6 +72,8 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     private var reload: NSButton!
     private var external: NSButton!
     private var favorite: NSButton!
+    private var adBlockButton: NSButton!
+    private let adBlocker = ClubAdBlocker()
     private let bookmarkStore = BookmarkStore()
     private var bookmarkPanel: BookmarkPanel?
 
@@ -188,6 +190,8 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         labels.setContentHuggingPriority(NSLayoutConstraint.Priority(1), for: .horizontal)
         toolbar.addArrangedSubview(labels)
         favorite = tool("star", "收藏当前网址", #selector(saveBookmark))
+        adBlockButton = tool("shield.lefthalf.filled", "广告拦截已开启，点击关闭", #selector(toggleAdBlock))
+        toolbar.addArrangedSubview(adBlockButton)
         toolbar.addArrangedSubview(favorite)
         toolbar.addArrangedSubview(external)
         themeButton = tool(darkTheme ? "sun.max" : "moon", "切换深色或浅色", #selector(toggleTheme))
@@ -508,7 +512,13 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
                 DispatchQueue.main.async { self?.syncToolbar() }
             })
             let target = key == -1 ? URL(string: raw + libraryRoute) ?? url : url
-            view.load(URLRequest(url: target))
+            if key >= 0 {
+                adBlocker.apply(to: view) { [weak self, weak view] success in
+                    guard let view = view else { return }
+                    if !success { self?.status.stringValue = "广告规则未能加载，当前网页未受拦截保护。" }
+                    view.load(URLRequest(url: target))
+                }
+            } else { view.load(URLRequest(url: target)) }
         }
         syncToolbar()
     }
@@ -534,6 +544,11 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         forward?.isEnabled = active?.canGoForward ?? false
         reload?.isEnabled = active != nil
         external?.isEnabled = current != nil
+        adBlockButton?.isEnabled = (current ?? -1) >= 0
+        let adTitle = adBlocker.enabled ? (adBlocker.failed ? "广告规则加载失败，点击关闭" : "广告拦截已开启，点击关闭") : "广告拦截已关闭，点击开启"
+        adBlockButton?.toolTip = adBlocker.enabled && adBlocker.failed ? adTitle + "：" + (adBlocker.failureReason ?? "未知规则错误") : adTitle
+        adBlockButton?.setAccessibilityLabel(adTitle)
+        adBlockButton?.image = NSImage(systemSymbolName: adBlocker.enabled ? "shield.lefthalf.filled" : "shield.slash", accessibilityDescription: adTitle)
         let canSave = (current ?? -1) >= 0 && active?.url.flatMap { validURL($0.absoluteString) } != nil
         favorite?.isEnabled = canSave
         let saved = active?.url.map { bookmarkStore.contains($0.absoluteString) } ?? false
@@ -543,6 +558,16 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
             pageTitle.stringValue = key == -1 ? "本地媒体库" : sites[key].name
             locationLabel.stringValue = active?.url?.host ?? "正在连接…"
         }
+    }
+    @objc private func toggleAdBlock() {
+        adBlocker.enabled.toggle()
+        for (key, web) in tabs where key >= 0 {
+            adBlocker.apply(to: web) { [weak self, weak web] success in
+                if self?.active === web { web?.reload() }
+                if !success { self?.status.stringValue = "广告规则未能加载，请重新打开应用。" }
+            }
+        }
+        syncToolbar()
     }
     @objc private func saveBookmark() {
         guard (current ?? -1) >= 0, let url = active?.url, validURL(url.absoluteString) != nil else { return }
@@ -661,7 +686,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         if service?.isRunning == true { service?.terminate() }
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        if webView === active { status.stringValue = ""; syncToolbar() }
+        if webView === active { status.stringValue = (current ?? -1) >= 0 && adBlocker.enabled && adBlocker.failed ? "广告规则未能加载，当前网页未受拦截保护。" : ""; syncToolbar() }
     }
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         if (error as NSError).code == NSURLErrorCancelled { return }
@@ -684,8 +709,24 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
                  for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if navigationAction.targetFrame == nil, let url = navigationAction.request.url,
-           validURL(url.absoluteString) != nil { NSWorkspace.shared.open(url) }
+           validURL(url.absoluteString) != nil {
+            // 在线站点的新窗口永不自动交给系统浏览器。
+            // 站内视频的新窗口请求改为当前页导航；广告跨站弹窗直接丢弃。
+            if webView === tabs[-1] {
+                if navigationAction.navigationType == .linkActivated { webView.load(URLRequest(url: url)) }
+            } else if let source = webView.url, isSameOnlineSite(source, url) {
+                webView.load(URLRequest(url: url))
+            }
+        }
         return nil
+    }
+    private func isSameOnlineSite(_ source: URL, _ target: URL) -> Bool {
+        guard let from = source.host?.lowercased(), let to = target.host?.lowercased() else { return false }
+        if from == to { return true }
+        let families = ["pornhub.com", "xhamster.com", "spankbang.com", "pigav.com", "javhdporn.net", "missav.ai", "jable.tv"]
+        return families.contains { root in
+            (from == root || from.hasSuffix("." + root)) && (to == root || to.hasSuffix("." + root))
+        }
     }
     private func buildMenu() {
         let menu = NSMenu()
