@@ -2137,7 +2137,7 @@ class FastApiContractTests(unittest.IsolatedAsyncioTestCase):
         """
         page = await self.client.get("/login?next=/")
         self.assertEqual(page.status_code, 200)
-        self.assertIn('<link rel="icon" href="/favicon.ico" type="image/x-icon">', page.text)
+        self.assertIn('<link rel="icon" href="/vvs-club.svg" type="image/svg+xml">', page.text)
 
     async def test_the_login_page_follows_the_chosen_theme(self):
         """登录页在拿到 cookie 之前出图，深浅色跟着同一个选择走，在第一次绘制前定下来。
@@ -4043,6 +4043,7 @@ PUBLIC_ROUTES = {
     # 它们发的是随仓库分发的品牌资源，不读账本。
     ("GET,HEAD", "/favicon.ico"),
     ("GET,HEAD", "/favicon.svg"),
+    ("GET,HEAD", "/vvs-club.svg"),
     ("GET,HEAD", "/peach-logo.png"),
     ("GET,HEAD", "/peach-logo-64.png"),
     ("GET,HEAD", "/peach-logo-128.png"),

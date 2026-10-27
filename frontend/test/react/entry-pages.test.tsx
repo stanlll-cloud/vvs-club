@@ -72,7 +72,7 @@ describe('错误页', () => {
       const detail = lede ?? '这个地址下没有页面。';
       const host = await mount(<ErrorPage data={{ status, detail }} />);
       expect(host.querySelector('h1')?.textContent).toBe(title);
-      expect(document.title).toBe(`Peach · ${title}`);
+      expect(document.title).toBe(`vvs-club · ${title}`);
       expect(host.textContent?.includes(detail)).toBe(lede !== null);
       const home = host.querySelector('a');
       expect(home?.getAttribute('href')).toBe('/');

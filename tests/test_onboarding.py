@@ -574,8 +574,8 @@ class SetupJsonContractTests(_SetupHttpCase):
         response = self._get("/")
         self.assertEqual(response.status_code, 200)
         body = response.text
-        self.assertIn("<title>Peach · 首次运行</title>", body)
-        self.assertIn('<link rel="icon" href="/favicon.ico" type="image/x-icon">', body)
+        self.assertIn("<title>vvs-club · 首次设置</title>", body)
+        self.assertIn('<link rel="icon" href="/vvs-club.svg" type="image/svg+xml">', body)
         self.assertLess(body.index('localStorage.getItem("peach.settings.v1")'), body.index("/dist/peach-pages.css"))
         for symbol in ("folder-search", "hard-drive", "database"):
             self.assertIn(f'<symbol id="i-{symbol}"', body)
@@ -727,7 +727,7 @@ class SetupJsonContractTests(_SetupHttpCase):
         self.assertEqual(data["windows"], NATIVE_WINDOWS)
         self.assertFalse(data["standalone"])
         self.assertEqual([row["value"] for row in data["media_sources"]],
-                         ["local", "115", "pikpak", "guangya", "onedrive", "mounted"])
+                         ["local", "baidu", "aliyun", "quark", "terabox", "115", "pikpak", "guangya", "onedrive", "mounted"])
         self.assertEqual(data["media_source_default"], "local")
         if NATIVE_WINDOWS:
             self.assertIsNone(data["media_root"])

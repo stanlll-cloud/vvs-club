@@ -55,7 +55,7 @@ describe('首次运行页', { skip: origin && media && dataRoot ? false : '只�
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
       // 加载：题目到齐后表单出现，等待态结束，页面不横向溢出。
-      const heading = page.getByRole('heading', { name: '欢迎使用 Peach' });
+      const heading = page.getByRole('heading', { name: '把收藏安放在vvs-club' });
       await heading.waitFor({ state: 'visible', timeout: 15_000 });
       await page.getByRole('button', { name: '开始设置', exact: true }).click();
       const folder = page.getByRole('textbox', { name: '媒体目录 1' });
@@ -149,14 +149,14 @@ describe('首次运行页', { skip: origin && media && dataRoot ? false : '只�
       });
 
       // 完成态：入口链接拿到焦点，扫描没有排队，运行信息收起，口令不在页面上。
-      await page.getByRole('heading', { name: '可以开始使用了' }).waitFor({ state: 'visible' });
+      await page.getByRole('heading', { name: '影片空间已经打开' }).waitFor({ state: 'visible' });
       assert.equal((await page.content()).includes('private-proxy'), false);
-      const entry = page.getByRole('link', { name: '进入 Peach' });
+      const entry = page.getByRole('link', { name: '打开vvs-club' });
       await entry.waitFor({ state: 'visible' });
       assert.ok(await entry.evaluate((element) => element === document.activeElement), '入口链接拿到焦点');
       assert.match((await entry.getAttribute('href')) ?? '', /^https?:\/\//);
       await page.getByText('稍后在配置页开始扫描媒体库。').waitFor({ state: 'visible' });
-      assert.equal(await page.title(), 'Peach · 设置完成');
+      assert.equal(await page.title(), 'vvs-club · 设置完成');
       assert.deepEqual((await layout(page)).offenders, []);
       await page.getByText('运行信息', { exact: true }).click();
       await page.getByText(selectedData, { exact: true }).waitFor({ state: 'visible' });

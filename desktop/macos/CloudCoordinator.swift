@@ -285,9 +285,9 @@ final class CloudAuthorization: NSObject, WKNavigationDelegate, WKUIDelegate, NS
     }
     private func tryAutomaticLogin() {
         guard !automaticAttempted, !verifying, !completed, let url = browser?.url else { return }
-        let path = url.path.lowercased()
-        let loggedInPage = provider == "quark" ? path.hasPrefix("/list") : (path.hasPrefix("/disk") || path.hasPrefix("/main"))
-        if loggedInPage { confirmWebSession(automatic: true) }
+        // 官网可在首页通过单页路由完成登录，不能只依赖 /list 等地址变化。
+        // 下层仅在取得本网盘必需的会话 Cookie 后提交，并以真实目录读取确认连接。
+        if allowed(url) { confirmWebSession(automatic: true) }
     }
     @objc private func confirmWebSessionManually() { confirmWebSession(automatic: false) }
     private func confirmWebSession(automatic: Bool) {

@@ -93,7 +93,7 @@ it('分步设置返回后保留目录，确认前不提交配置', async () => {
   await click(buttonNamed('开始设置', host));
   await type(paths(host)[0], 'F:\\Library');
   await click(buttonNamed('继续', host));
-  expect(host.querySelector('h1')?.textContent).toBe('在哪里使用 Peach？');
+  expect(host.querySelector('h1')?.textContent).toBe('哪些设备可以打开？');
   await click(buttonNamed('返回', host));
   expect(paths(host)[0]?.value).toBe('F:\\Library');
   expect(fetcher.mock.calls.filter(([url]) => url === SETUP_URL)).toHaveLength(0);
@@ -106,8 +106,8 @@ it('编辑草稿随步骤匹配场景标题、说明和操作文字', async () =
   } }).PeachCopyEditorCore;
   const originals = new WeakMap<Node, string>();
   const edits = {
-    '你的私人媒体空间。': '私人馆藏。',
-    '把喜欢的内容，整理成自己的收藏。': '整理你的收藏。',
+    '收藏再多，也找得到。': '私人馆藏。',
+    'vvs-club把分散的影片、资料和观看记录放在一起。': '整理你的收藏。',
     '开始设置': '开始整理', '继续': '下一步', '完成设置': '保存设置',
   };
   const apply = () => core.applyDrafts(host, edits, originals);
@@ -116,13 +116,13 @@ it('编辑草稿随步骤匹配场景标题、说明和操作文字', async () =
   expect(caption()).toEqual(['私人馆藏。', '整理你的收藏。']);
   await click(buttonNamed('开始整理', host));
   apply();
-  expect(caption()).toEqual(['让文件成为馆藏。', '按媒体库归类，文件保留在原来的位置。']);
+  expect(caption()).toEqual(['从一个文件夹开始。', '连接现有目录，扫描时不搬动原文件。']);
   await click(buttonNamed('下一步', host));
   apply();
-  expect(caption()).toEqual(['从书桌，到手边。', '电脑与手机，连接同一套 Peach。']);
+  expect(caption()).toEqual(['换个屏幕，继续看。', '按选定的访问范围，在电脑或手机打开媒体库。']);
   await click(buttonNamed('下一步', host));
   apply();
-  expect(caption()).toEqual(['全都准备好了。', '确认后保存，扫描按你的选择开始。']);
+  expect(caption()).toEqual(['影片空间，由你定。', '保存目录与访问设置，再决定是否立即扫描。']);
   expect(buttonNamed('保存设置', host)).not.toBeNull();
   for (let count = 0; count < 3; count++) { await click(buttonNamed('返回', host)); apply(); }
   expect(caption()).toEqual(['私人馆藏。', '整理你的收藏。']);
@@ -154,7 +154,7 @@ function expectAnnounced(root: HTMLElement, input: Element | null | undefined, m
 
 it('目录与访问范围直接显示，端口和局域网名称按需展开', async () => {
   const { host } = await open();
-  expect(host.querySelector('h1')?.textContent).toBe('欢迎使用 Peach');
+  expect(host.querySelector('h1')?.textContent).toBe('把收藏安放在vvs-club');
   expect(paths(host).map((input) => input.value)).toEqual(['']);
   expect(advanced(host)?.getAttribute('aria-expanded')).toBe('false');
   expect(field(host, 'port')?.value).toBe('8900');
@@ -461,15 +461,15 @@ describe('完成态', () => {
   it('成功后同一页换成完成态：扫描说明、入口链接、运行信息默认收起', async () => {
     const { host } = await open({}, { [SETUP_URL]: { status: 200, body: done() } });
     await submitForm(host);
-    expect(host.querySelector('h1')?.textContent).toBe('可以开始使用了');
-    expect(host.textContent).toContain('馆藏，准备开启。');
-    expect(host.textContent).toContain('首次扫描已排队，在后台整理媒体库，期间可以照常使用 Peach。');
-    const entry = [...host.querySelectorAll('a')].find((link) => link.textContent === '进入 Peach');
+    expect(host.querySelector('h1')?.textContent).toBe('影片空间已经打开');
+    expect(host.textContent).toContain('下一部，从这里找。');
+    expect(host.textContent).toContain('扫描任务已排队，后台处理期间仍可浏览vvs-club。');
+    const entry = [...host.querySelectorAll('a')].find((link) => link.textContent === '打开vvs-club');
     expect(entry?.getAttribute('href')).toBe('http://127.0.0.1:8900/?onboarding=1');
     expect(document.activeElement).toBe(entry);
     const facts = [...host.querySelectorAll('summary')].find((node) => node.textContent === '运行信息');
     expect(facts?.getAttribute('aria-expanded')).toBe('false');
-    expect(document.title).toBe('Peach · 设置完成');
+    expect(document.title).toBe('vvs-club · 设置完成');
   });
 
   it('选了导入浏览器历史又没扫描时，入口换成导入历史', async () => {
