@@ -74,6 +74,13 @@ RECIPES = {
                      ("npm", "--prefix", "frontend", "run", "build")),
         "checks": (),
     },
+    "vvs-windows": {
+        "label": "vvs-club Windows 桌面依赖",
+        "manifests": ("desktop/windows/package.json", "desktop/windows/package-lock.json"),
+        "derived": (),
+        "commands": (("npm", "--prefix", "desktop/windows", "ci", "--ignore-scripts"),),
+        "checks": (("node", "--check", "desktop/windows/main.cjs"),),
+    },
     "uv": {
         "label": "Python 依赖（pyproject.toml 与 uv.lock）",
         "manifests": ("pyproject.toml", "uv.lock"),

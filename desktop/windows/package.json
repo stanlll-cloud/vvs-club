@@ -1,0 +1,76 @@
+{
+  "name": "vvs-club-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "vvs-club Windows desktop",
+  "main": "main.cjs",
+  "license": "AGPL-3.0-or-later",
+  "author": "vvs-club contributors",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win nsis zip --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "cloud.stanlll.vvs-club",
+    "productName": "vvs-club",
+    "artifactName": "vvs-club-${version}-windows-${arch}.${ext}",
+    "directories": {
+      "output": "../../build/vvs-club-windows"
+    },
+    "files": [
+      "*.cjs",
+      "*.html",
+      "*.css",
+      "*.js",
+      "assets/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../../build/vvs-windows-backend/vvs-service",
+        "to": "backend"
+      },
+      {
+        "from": "../../build/vvs-windows-dependencies/openlist.exe",
+        "to": "openlist.exe"
+      },
+      {
+        "from": "../../resources/third-party/OpenList-LICENSE",
+        "to": "OpenList-LICENSE"
+      },
+      {
+        "from": "../../resources/third-party/EasyList-NOTICE.txt",
+        "to": "EasyList-NOTICE.txt"
+      },
+      {
+        "from": "../../LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "../../build/ffmpeg-windows/ffmpeg",
+        "to": "backend/tools/ffmpeg"
+      },
+      {
+        "from": "../../build/ffmpeg-windows/ffmpeg-corresponding-source.zip",
+        "to": "ffmpeg-corresponding-source.zip"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "assets/vvs-club.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "include": "installer.nsh"
+    }
+  }
+}

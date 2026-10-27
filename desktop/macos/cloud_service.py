@@ -86,7 +86,7 @@ class CloudBridge:
         environment['OPENLIST_ADMIN_PASSWORD'] = secrets.token_urlsafe(48)
         environment['NO_PROXY'] = environment.get('NO_PROXY', '') + ',127.0.0.1,localhost'
         result = subprocess.run([*args, 'admin', 'token'], capture_output=True, text=True,
-                                timeout=60, env=environment)
+                                timeout=60, env=environment, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         token_text = result.stdout.split('Admin token:')[-1].strip()
         self.admin_token = next((line.strip() for line in token_text.splitlines()
                                  if re.fullmatch(r'[A-Za-z0-9_\-.]{24,512}', line.strip())), '')
@@ -98,7 +98,7 @@ class CloudBridge:
         config.chmod(0o600)
         for path in self.core_dir.glob('*.db*'):
             path.chmod(0o600)
-        self.process = subprocess.Popen([*args, 'server'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=environment)
+        self.process = subprocess.Popen([*args, 'server'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=environment, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         try:
             for _ in range(100):
                 if self.process.poll() is not None:

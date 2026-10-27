@@ -14,6 +14,10 @@ A self-hosted VPS means deployment, updates and connection troubleshooting. If y
 
 vvs-club combines a personal media-library workflow with a macOS window for your online destinations. Browse local files, keep useful metadata, and open a chosen website from the sidebar without mixing it with your library.
 
+## Windows
+
+A Windows 10/11 x64 desktop build is being prepared. See [Windows build instructions](desktop/windows/README.md) and the `vvs-club Windows` Actions workflow. It is not a verified release until the build and runtime checks produce a successful artifact.
+
 ## Start on macOS
 
 With Apple Command Line Tools installed, run from the repository root:

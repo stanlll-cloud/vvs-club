@@ -13,8 +13,11 @@ import urllib.request
 
 
 def main() -> int:
-    root = Path(__file__).resolve().parents[2]
-    data = Path.home() / 'Library/Application Support/vvs-club/media-data'
+    frozen = bool(getattr(sys, "frozen", False))
+    root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
+    command = [sys.executable, "--vvs-cli"] if frozen else [sys.executable, "-m", "peach"]
+    base = Path(os.environ.get('VVS_DATA_ROOT') or (Path(os.environ.get('LOCALAPPDATA', Path.home() / 'AppData/Local')) / 'vvs-club' if os.name == 'nt' else Path.home() / 'Library/Application Support/vvs-club'))
+    data = base / 'media-data'
     data.mkdir(parents=True, exist_ok=True, mode=0o700)
     logs = data.parent / 'logs'
     logs.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -30,6 +33,7 @@ def main() -> int:
     sys.path.insert(0, str(root / 'src'))
     from peach import onboarding, settings_file
 
+    process_options = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
     process = None
     scanner = None
     stopping = False
@@ -52,12 +56,12 @@ def main() -> int:
                 reload_path = prepared.directory('state') / onboarding.RELOAD_NAME
                 reload_path.unlink(missing_ok=True)
                 arguments = [
-                    sys.executable, '-m', 'peach', 'serve', '--host', '127.0.0.1',
+                    *command, 'serve', '--host', '127.0.0.1',
                     '--port', str(port), '--no-mdns', '--no-ledger-sync',
                 ]
                 if not prepared.present:
                     arguments.append('--setup')
-                process = subprocess.Popen(arguments, cwd=root, env=env, stdout=log, stderr=log)
+                process = subprocess.Popen(arguments, cwd=root, env=env, stdout=log, stderr=log, **process_options)
                 announced = False
                 deadline = time.monotonic() + 90
                 while not stopping and process.poll() is None:
@@ -82,8 +86,8 @@ def main() -> int:
                     if prepared.present and scanner is None:
                         location = onboarding.take_first_scan_request(prepared)
                         if location is not None:
-                            scanner = subprocess.Popen([sys.executable, '-m', 'peach', 'process', location],
-                                                       cwd=root, env=env, stdout=log, stderr=log)
+                            scanner = subprocess.Popen([*command, 'process', location],
+                                                       cwd=root, env=env, stdout=log, stderr=log, **process_options)
                     time.sleep(0.5)
                 if process.poll() is None:
                     process.terminate()

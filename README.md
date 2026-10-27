@@ -18,7 +18,7 @@
 
 把本地影片、网盘收藏和常用网站，收进一个顺手的 Mac 窗口。整理时专注媒体库，浏览时切换在线站点；想看的网址随手收藏，下次不用重新找。
 
-[Mac 应用](desktop/macos/README.md) · [运行与配置](docs/OPERATIONS.md) · [反馈问题](https://github.com/stanlll-cloud/vvs-club/issues) · [上游与更新](UPSTREAM.md) · [English](README.en.md)
+[Mac 应用](desktop/macos/README.md) · [Windows 版构建](desktop/windows/README.md) · [运行与配置](docs/OPERATIONS.md) · [反馈问题](https://github.com/stanlll-cloud/vvs-club/issues) · [上游与更新](UPSTREAM.md) · [English](README.en.md)
 
 ## 从收藏到播放，都有顺手的入口
 
@@ -39,6 +39,10 @@
 ### 喜欢的网址，收进书签
 
 点顶部星形按钮，一键收藏当前网页。独立书签栏支持多层文件夹、改名、编辑网址、拖拽排序与移动；删除后可撤销。书签只保存在本机。
+
+## Windows 版
+
+Windows 10/11 x64 版本的构建入口见 [Windows 说明](desktop/windows/README.md)。安装包由仓库 Actions 的 `vvs-club Windows` 工作流生成，构建与运行验证状态以工作流结果为准；未取得成功产物前不视为已发布。
 
 ## 在 Mac 上开始
 

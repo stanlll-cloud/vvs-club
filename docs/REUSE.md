@@ -1091,3 +1091,9 @@ Python 源文件纳入 `src/peach/library_sharing.py` 与 `src/peach/library_pro
 ## vvs-club 本机网盘连接
 
 Mac 外壳复用未修改的 OpenList v4.2.9 官方 lite 发布资产与 AGPL-3.0 许可，固定构建摘要见 `desktop/macos/build.py`，对应源码见 https://github.com/OpenListTeam/OpenList/tree/v4.2.9 。网盘协议、令牌刷新和视频代理归 OpenList；vvs-club 只维护账号入口、私有本机连接桥、目录选择、扫描索引与 STRM 资料库交接，不复制平台 SDK。授权交互参考 OpenList-APIPages 提交 `4322fd1f0f5e4e77454fd8a5edb89727854b0092` 的公开回调协议。真实账号与播放兼容性未验证前不标为完成，范围与凭据路径见 `desktop/macos/CLOUD_CONNECTIONS.md`。
+
+## vvs-club Windows 桌面
+
+Windows 10/11 x64 外壳复用 Electron 45.0.0 的 WebContentsView、隔离预加载桥和原生窗口管理；打包使用 electron-builder 26.18.0，依赖锁在 desktop/windows/package-lock.json 并登记 Dependabot 与接管 recipe。远程网站不启用 Node，只有本地应用页面可请求明确列出的操作。媒体服务、网盘连接、固定版本 OpenList 与广告规则复用现有实现。FFmpeg 复用固定源码的 Windows 构建与对应源码交付流程。平台运行结果以 Windows 工作流和真实账号验收为准。
+
+依据：[Electron WebContentsView](https://www.electronjs.org/docs/latest/api/web-contents-view)、[隔离上下文](https://www.electronjs.org/docs/latest/tutorial/context-isolation)。
