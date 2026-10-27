@@ -59,6 +59,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     private var serviceBuffer = ""
     private var libraryRoute = "/"
     private var cloudPanel: NSScrollView?
+    private var cloudCoordinator: CloudCoordinator?
     private let cloudNames = ["百度网盘", "阿里网盘", "夸克网盘", "TeraBox", "115 网盘"]
     private var themeButton: NSButton!
     private var darkTheme = UserDefaults.standard.object(forKey: "clubDarkTheme") as? Bool ?? (NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua)
@@ -342,6 +343,45 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     }
     private func showClouds(_ key: Int) {
         current = nil
+        welcome.isHidden = true
+        cloudPanel?.isHidden = true
+        for tab in tabs.values { tab.isHidden = true }
+        for button in buttons { button.state = button.tag == key ? .on : .off }
+        if cloudCoordinator == nil {
+            let coordinator = CloudCoordinator()
+            coordinator.onMounted = { [weak self] in self?.showMountedClouds(-4) }
+            coordinator.onImport = { [weak self] path, provider in self?.importCloudIndex(path, provider: provider) }
+            cloudCoordinator = coordinator
+            add(coordinator.view, to: webHost)
+            NSLayoutConstraint.activate([
+                coordinator.view.leadingAnchor.constraint(equalTo: webHost.leadingAnchor),
+                coordinator.view.trailingAnchor.constraint(equalTo: webHost.trailingAnchor),
+                coordinator.view.topAnchor.constraint(equalTo: webHost.topAnchor),
+                coordinator.view.bottomAnchor.constraint(equalTo: webHost.bottomAnchor)
+            ])
+        }
+        cloudCoordinator?.view.isHidden = false
+        cloudCoordinator?.show(dark: darkTheme)
+        pageTitle.stringValue = "连接网盘"
+        locationLabel.stringValue = "登录授权 → 选择云端目录 → 扫描影片"
+        status.stringValue = "扫描与播放使用这台电脑当前的网络。"
+        syncToolbar()
+    }
+    private func importCloudIndex(_ path: String, provider: String) {
+        let names = ["baidu": "百度网盘", "aliyun": "阿里网盘", "115": "115 网盘"]
+        var route = URLComponents()
+        route.path = "/settings/library"
+        route.queryItems = [URLQueryItem(name: "vvs_folder", value: path),
+            URLQueryItem(name: "vvs_library", value: names[provider] ?? "网盘影片"),
+            URLQueryItem(name: "vvs_cloud", value: "1"), URLQueryItem(name: "vvs_source", value: provider)]
+        libraryRoute = route.string ?? "/settings/library"
+        show(-1)
+        if let view = tabs[-1], let base = localURL ?? UserDefaults.standard.string(forKey: "libraryURL"), let url = URL(string: base + libraryRoute) { view.load(URLRequest(url: url)) }
+        status.stringValue = "影片索引已准备好，确认媒体库设置后即可入库。"
+    }
+    private func showMountedClouds(_ key: Int) {
+        cloudCoordinator?.view.isHidden = true
+        current = nil
         for button in buttons { button.state = button.tag == key ? .on : .off }
         for view in tabs.values { view.isHidden = true }
         welcome.isHidden = true
@@ -414,6 +454,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         syncToolbar()
     }
     private func show(_ key: Int) {
+        cloudCoordinator?.view.isHidden = true
         cloudPanel?.isHidden = true
         if key == -1 && UserDefaults.standard.string(forKey: "libraryURL") == nil && localURL == nil {
             current = -1
@@ -468,6 +509,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     }
     @objc private func toggleTheme() {
         darkTheme.toggle()
+        cloudCoordinator?.applyTheme(darkTheme)
         UserDefaults.standard.set(darkTheme, forKey: "clubDarkTheme")
         window.appearance = NSAppearance(named: darkTheme ? .darkAqua : .aqua)
         themeButton.image = NSImage(systemSymbolName: darkTheme ? "sun.max" : "moon", accessibilityDescription: "切换深色或浅色")
@@ -575,6 +617,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         }
     }
     func applicationWillTerminate(_ notification: Notification) {
+        cloudCoordinator?.stop()
         servicePipe?.fileHandleForReading.readabilityHandler = nil
         if service?.isRunning == true { service?.terminate() }
     }
@@ -637,9 +680,14 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 }
 
-MainActor.assumeIsolated {
-    let app = NSApplication.shared
-    let delegate = ClubApp()
-    app.delegate = delegate
-    app.run()
+@main
+struct ClubMain {
+    static func main() {
+        MainActor.assumeIsolated {
+            let app = NSApplication.shared
+            let delegate = ClubApp()
+            app.delegate = delegate
+            app.run()
+        }
+    }
 }

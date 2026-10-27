@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import tarfile
+import urllib.request
 import json
 import platform
 import plistlib
@@ -36,7 +39,7 @@ def main() -> None:
         'xcrun', 'swiftc', '-swift-version', '5', '-O', '-target',
         f'{platform.machine()}-apple-macos13.0', '-framework', 'AppKit',
         '-framework', 'WebKit', '-module-cache-path', str(module_cache),
-        str(source / 'VVSClub.swift'), '-o', str(executable),
+        str(source / 'VVSClub.swift'), str(source / 'CloudCoordinator.swift'), '-o', str(executable),
     ], check=True)
     plist = {
         'CFBundleExecutable': 'vvs-club', 'CFBundleName': 'vvs-club',
@@ -60,6 +63,32 @@ def main() -> None:
     subprocess.run(['iconutil', '-c', 'icns', str(iconset), '-o', str(resources / 'vvs-club.icns')], check=True)
     shutil.copy2(source / 'sites.json', resources / 'sites.json')
     (resources / 'runtime.json').write_text(json.dumps({'backendRoot': str(source.parents[1])}))
+    # 固定官方发布版本及 GitHub 发布资产摘要，更新时必须一并核对。
+    openlist_version = 'v4.2.9'
+    architectures = {
+        'arm64': ('arm64', 'a4241527f1f74e786ec33accb3cebc7008ea1ba5717a462b0af23a1ac6565e88'),
+        'x86_64': ('amd64', '72808a4436f20ec1d652c02389820f22bc19ae06199efa5aa6cb3587a0495941'),
+    }
+    arch, expected = architectures[platform.machine()]
+    cache = source.parents[1] / 'build/dependencies'
+    cache.mkdir(parents=True, exist_ok=True)
+    asset = f'openlist-darwin-{arch}-lite.tar.gz'
+    archive = cache / f'{openlist_version}-{asset}'
+    if not archive.exists():
+        with urllib.request.urlopen(f'https://github.com/OpenListTeam/OpenList/releases/download/{openlist_version}/{asset}', timeout=120) as response:
+            archive.write_bytes(response.read())
+    if hashlib.sha256(archive.read_bytes()).hexdigest() != expected:
+        parser.error('OpenList 下载文件摘要不匹配，请重新取得官方发布文件。')
+    with tarfile.open(archive, 'r:gz') as package:
+        member = package.getmember('openlist')
+        if not member.isfile():
+            parser.error('OpenList 发布包格式不正确。')
+        payload = package.extractfile(member)
+        assert payload is not None
+        (resources / 'openlist').write_bytes(payload.read())
+    (resources / 'openlist').chmod(0o755)
+    subprocess.run(['codesign', '--force', '--sign', '-', str(resources / 'openlist')], check=True)
+    shutil.copy2(source.parents[1] / 'resources/third-party/OpenList-LICENSE', resources / 'OpenList-LICENSE')
     shutil.copy2(source.parents[1] / 'LICENSE', resources / 'LICENSE')
     subprocess.run(['codesign', '--force', '--sign', '-', str(bundle)], check=True)
     print(f'构建完成：{bundle}')

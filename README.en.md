@@ -39,3 +39,5 @@ Distributed under [AGPL-3.0-or-later](LICENSE), with original copyright notices 
 ## Affiliate promotion · Just My Socks
 
 [View plans and register](https://justmysocks.net/members/aff.php?aff=39372). This affiliate link may earn the maintainer a commission. Routes and supported carriers depend on the selected plan. vvs-club is not an official client of this service.
+
+Cloud account connections use a local OpenList v4.2.9 component. Baidu, Aliyun and 115 authorization, cloud browsing and scanning code is present; real-account compatibility is not yet verified. Quark and TeraBox account login remains unavailable. Some authorization and token renewal uses api.oplist.org. See [cloud connection details](desktop/macos/CLOUD_CONNECTIONS.md).

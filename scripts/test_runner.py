@@ -71,7 +71,7 @@ SCOPES: dict[str, tuple[str, ...]] = {
               "test_previews.py", "test_preview_transport.py",
               "test_providers.py", "test_segments.py", "test_streaming.py", "test_stream_lifecycle.py",
               "test_subtitles.py", "test_transcodes.py", "test_hardware_transcode.py", "test_strm.py",
-              "test_guangya_sources.py", "test_media_sources.py", "test_smb*.py"),
+              "test_guangya_sources.py", "test_media_sources.py", "test_vvs_cloud_connections.py", "test_smb*.py"),
     "sync": ("test_sync*.py", "test_platform.py", "test_mount.py", "test_tray*.py", "test_macos_standalone.py", "test_log_retention.py",
              "test_mdns.py", "test_netwatch.py", "test_certs.py",
              "test_review_mirror.py", "test_runtime_prepare.py"),

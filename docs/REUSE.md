@@ -1087,3 +1087,7 @@ Python 源文件纳入 `src/peach/library_sharing.py` 与 `src/peach/library_pro
 口味页浏览器标识使用本地静态资源，不在展示时请求品牌网站。通用图标来自 [browser-logos](https://github.com/alrra/browser-logos/tree/58881b84c4d73adc03c06fa2c275a7abee02d935)，固定 revision 为 `58881b84c4d73adc03c06fa2c275a7abee02d935`；品牌商标归原持有人。其余品牌的来源、摘要、类型和别名记录在 `resources/browser-icons/manifest.json`。115 使用已安装浏览器 PE 的 `IDR_MAINFRAME` 主图标，未加载或执行程序；不能用网站标记替代应用图标。未知品牌继续使用通用图标，不按 Chromium 内核冒充 Chrome。
 
 本地发现继续复用 `watchdog` 原生文件事件。缺少配置时开启本地目录监控，保留显式关闭；网盘挂载不递归订阅。空队列等待事件，不增加定期目录遍历。本地移动事件传递旧路径，已积累的系统文件身份用于同卷改名和移动后的 ID 保留；标准库文件属性与 `FileLock`、原子写入承接私有缓存，不新增哈希遍历或媒体读取。跨卷副本、旧路径仍存在的文件不自动合并。升级前没有身份记录且停机期间已经移动的文件仍需全库维护或人工确认，不能仅凭大小和文件名接回。
+
+## vvs-club 本机网盘连接
+
+Mac 外壳复用未修改的 OpenList v4.2.9 官方 lite 发布资产与 AGPL-3.0 许可，固定构建摘要见 `desktop/macos/build.py`，对应源码见 https://github.com/OpenListTeam/OpenList/tree/v4.2.9 。网盘协议、令牌刷新和视频代理归 OpenList；vvs-club 只维护账号入口、私有本机连接桥、目录选择、扫描索引与 STRM 资料库交接，不复制平台 SDK。授权交互参考 OpenList-APIPages 提交 `4322fd1f0f5e4e77454fd8a5edb89727854b0092` 的公开回调协议。真实账号与播放兼容性未验证前不标为完成，范围与凭据路径见 `desktop/macos/CLOUD_CONNECTIONS.md`。
