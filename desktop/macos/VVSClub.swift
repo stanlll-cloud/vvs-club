@@ -196,6 +196,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         toolbar.addArrangedSubview(external)
         themeButton = tool(darkTheme ? "sun.max" : "moon", "切换深色或浅色", #selector(toggleTheme))
         toolbar.addArrangedSubview(themeButton)
+        toolbar.addArrangedSubview(tool("xmark", "关闭网页，返回首页", #selector(resetBrowser)))
         add(toolbar, to: toolbarGlass)
         add(webHost, to: right)
         add(status, to: right)
@@ -593,6 +594,27 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         }
         bookmarkPanel?.refresh(); bookmarkPanel?.view.isHidden = false
         pageTitle.stringValue = "书签"; locationLabel.stringValue = "文件夹 · 拖拽整理 · 双击打开"; status.stringValue = "书签仅保存在这台 Mac。"; syncToolbar()
+    }
+    @objc private func resetBrowser() {
+        current = nil
+        for web in tabs.values {
+            web.pauseAllMediaPlayback(completionHandler: nil)
+            web.stopLoading()
+            web.navigationDelegate = nil
+            web.uiDelegate = nil
+            web.removeFromSuperview()
+        }
+        tabs.removeAll()
+        historyObservation.removeAll()
+        bookmarkPanel?.view.isHidden = true
+        cloudPanel?.isHidden = true
+        cloudCoordinator?.view.isHidden = true
+        for button in buttons { button.state = .off }
+        welcome.isHidden = false
+        pageTitle.stringValue = "你的影片空间"
+        locationLabel.stringValue = "选择左侧入口"
+        status.stringValue = ""
+        syncToolbar()
     }
     @objc private func goBack() { active?.goBack() }
     @objc private func goForward() { active?.goForward() }

@@ -63,6 +63,7 @@ def main() -> None:
     subprocess.run(['iconutil', '-c', 'icns', str(iconset), '-o', str(resources / 'vvs-club.icns')], check=True)
     shutil.copy2(source / 'sites.json', resources / 'sites.json')
     shutil.copy2(source / 'adblock-rules.json', resources / 'adblock-rules.json')
+    shutil.copy2(source.parents[1] / 'resources/third-party/EasyList-NOTICE.txt', resources / 'EasyList-NOTICE.txt')
     (resources / 'runtime.json').write_text(json.dumps({'backendRoot': str(source.parents[1])}))
     # 固定官方发布版本及 GitHub 发布资产摘要，更新时必须一并核对。
     openlist_version = 'v4.2.9'

@@ -1,0 +1,8 @@
+Selected cosmetic selectors adapted from The EasyList authors (https://easylist.to/).
+Source: https://github.com/easylist/easylist/blob/a920710c7f539c8a2f602629d962cfd8f24e7259/easylist_adult/adult_specific_hide.txt
+Upstream revision: a920710c7f539c8a2f602629d962cfd8f24e7259
+Changes: selected site-specific advertising selectors and converted them to WebKit JSON content rules; combined with locally maintained network rules.
+The adapted adblock-rules.json is distributed under Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0).
+Licence: https://creativecommons.org/licenses/by-sa/3.0/legalcode
+Upstream licensing: https://easylist.to/pages/licence.html
+This notice and the rule data do not change the application source code licence.

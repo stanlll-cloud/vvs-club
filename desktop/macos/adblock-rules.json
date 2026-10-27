@@ -189,7 +189,44 @@
     },
     "action": {
       "type": "css-display-none",
-      "selector": ".adsbygoogle, [data-ad-slot], .ad-banner, .advertisement, [id^=\"juicyads\"], iframe[src*=\"/adshow.php\"]"
+      "selector": ".adsbygoogle, [data-ad-slot], .ad-banner, .advertisement, [id^=\"juicyads\"], iframe[src*=\"/adshow.php\"], .adsbytrafficjunky"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": ".*",
+      "if-domain": [
+        "*pornhub.com",
+        "*pornhub.org"
+      ]
+    },
+    "action": {
+      "type": "css-display-none",
+      "selector": ".sideAds, .adsbytrafficjunky, img[srcset], img[src*=\"blob:\" i]"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": ".*",
+      "if-domain": [
+        "*xhamster.com"
+      ]
+    },
+    "action": {
+      "type": "css-display-none",
+      "selector": ".video-view-ads, div[data-testid=\"right-banner-section\"], .auto-generated-banner-container, .wio-xbanner"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": ".*",
+      "if-domain": [
+        "*spankbang.com"
+      ]
+    },
+    "action": {
+      "type": "css-display-none",
+      "selector": ".js-inline-ad, a[href^=\"https://deliver.ptgncdn.com/\"], a[href^=\"https://www.iyalc.com/\"]"
     }
   }
 ]

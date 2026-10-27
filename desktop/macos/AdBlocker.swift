@@ -30,7 +30,7 @@ final class ClubAdBlocker {
         compiling = true
         guard let file = Bundle.main.url(forResource: "adblock-rules", withExtension: "json"),
               let source = try? String(contentsOf: file, encoding: .utf8) else { finish(nil); return }
-        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "vvs-club-ads-v1", encodedContentRuleList: source) { [weak self] result, error in
+        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "vvs-club-ads-v2", encodedContentRuleList: source) { [weak self] result, error in
             self?.failureReason = error?.localizedDescription
             self?.finish(result)
         }
