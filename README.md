@@ -11,7 +11,6 @@
 [![查看线路与套餐 · 注册开通](resources/jms-button.svg)](https://justmysocks.net/members/aff.php?aff=39372)
 
 <sub>推广链接：通过此入口注册或购买，项目维护者可能获得佣金。服务与软件使用无绑定关系。可查看[官方套餐说明](https://justmysocks.net/members/cart.php)后自行选择。</sub>
-
 ---
 
 ![vvs-club Mac 应用界面](resources/vvs-club-preview.png)
