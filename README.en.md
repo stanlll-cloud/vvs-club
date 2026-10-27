@@ -18,7 +18,7 @@ Prepare the repository's `.venv` following [Operations](docs/OPERATIONS.md), the
 
 The shell uses top-level macOS WebKit views with back, forward, reload and external-browser controls. Website login, age checks, regional restrictions and playback compatibility remain controlled by each website. Automatic popups are disabled. No iframe restrictions or certificate checks are removed.
 
-Destinations are listed in [sites.json](desktop/macos/sites.json): PigAV, JAVHDPorn, SpankBang, Pornhub's Chinese site, MissAV, Jable and xHamster. Pages are opened only when selected. Edit the list and rebuild to change the sidebar.
+Destinations are listed in [sites.json](desktop/macos/sites.json): PigAV, JAVHDPorn, SpankBang, Pornhub's Chinese site, MissAV (Chinese & English), Jable and xHamster. Pages are opened only when selected. Edit the list and rebuild to change the sidebar.
 
 This source build records the source checkout and `.venv` location, which must remain available. It does not bundle an independent Python runtime, FFmpeg or media files and is not portable by copying only the `.app`. Developer ID signing, notarization, independent installers and automatic updates are not provided. Upstream downloads are Peach releases, not vvs-club releases.
 
