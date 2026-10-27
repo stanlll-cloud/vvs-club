@@ -56,7 +56,7 @@ jobs:
       - name: Smoke test the bundled backend
         shell: pwsh
         run: |
-          & .venv/Scripts/python.exe desktop/windows/smoke.py --backend build/vvs-windows-backend/vvs-service/vvs-service.exe
+          & .venv/Scripts/python.exe desktop/windows/smoke.py --backend build/vvs-windows-backend/vvs-service/vvs-service.exe --openlist build/vvs-windows-dependencies/openlist.exe
           if ($LASTEXITCODE -ne 0) { throw 'Bundled backend smoke test failed' }
       - uses: actions/upload-artifact@v7
         with:
