@@ -103,6 +103,16 @@ jobs:
         run: npm run build
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Smoke test packaged Windows interface
+        shell: pwsh
+        run: |
+          $env:VVS_SMOKE_REPORT = Join-Path $env:RUNNER_TEMP 'vvs-ui-smoke.json'
+          $App = Resolve-Path 'build/vvs-club-windows/win-unpacked/vvs-club.exe'
+          $Process = Start-Process -FilePath $App -ArgumentList '--vvs-smoke' -Wait -PassThru
+          if ($Process.ExitCode -ne 0) { throw 'Packaged UI check failed' }
+          $Report = Get-Content $env:VVS_SMOKE_REPORT -Raw | ConvertFrom-Json
+          if (-not $Report.ok) { throw 'Packaged UI did not report success' }
+          Write-Output ($Report | ConvertTo-Json -Compress)
       - uses: actions/upload-artifact@v7
         with:
           name: vvs-club-windows-x64

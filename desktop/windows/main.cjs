@@ -5,6 +5,8 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const {spawn} = require('node:child_process');
 const {pathToFileURL} = require('node:url');
+const smoke = process.argv.includes('--vvs-smoke');
+if(smoke)app.setPath('userData',fs.mkdtempSync(path.join(app.getPath('temp'),'vvs-ui-smoke-')));
 const base = __dirname;
 const uiURL = pathToFileURL(path.join(base, 'index.html')).href;
 const sites = require('./assets/sites.json');
@@ -116,6 +118,7 @@ function startWorker(kind) {
 }
 async function library(route='/') {
   notice='正在准备本地媒体库…';emit();const url=await startWorker('media');
+  if(route.includes('?')) { const health=await fetch(url+'/healthz',{signal:AbortSignal.timeout(5000)}).then(r=>r.json());if(health.configured===false)route='/?'+route.split('?')[1]; }
   let view=pages.get('library');if(!view){view=newView('library','persist:library');pages.set('library',view);}
   attach(view,'library');await view.webContents.loadURL(url+route);notice='';emit();
 }
@@ -215,6 +218,7 @@ ipcMain.handle('club:request',async(event,action,data={})=>{
     else if(action==='forward'&&active?.webContents.navigationHistory.canGoForward())active.webContents.navigationHistory.goForward();
     else if(action==='reload')active?.webContents.reload();
     else if(action==='external'){const u=safeURL(active?.webContents.getURL());if(u)await shell.openExternal(u.href);}
+    else if(action==='source')await shell.openExternal('https://github.com/stanlll-cloud/vvs-club');
     else if(action==='sponsor')await shell.openExternal('https://justmysocks.net/members/aff.php?aff=39372');
     else if(action==='theme'){dark=!dark;saveProfile({...profile,dark});if(mode==='library')active?.webContents.executeJavaScript(`document.documentElement.classList.toggle('dark',${dark})`);if(mode==='cloud')active?.webContents.executeJavaScript(`window.setClubTheme?.(${dark})`);}
     else if(action==='ads'){ads=!ads;saveProfile({...profile,ads});for(const [key,view] of pages)if(key.startsWith('site:')){if(view===active)view.webContents.reload();else {view.webContents.close();pages.delete(key);}}}
@@ -232,11 +236,34 @@ app.setName('vvs-club');
 const lock=app.requestSingleInstanceLock();if(!lock)app.quit();
 app.on('second-instance',()=>{if(win){if(win.isMinimized())win.restore();win.focus();}});
 app.whenReady().then(()=>{
-  loadProfile();win=new BrowserWindow({width:1320,height:900,minWidth:1000,minHeight:740,title:'vvs-club',autoHideMenuBar:true,icon:path.join(base,'assets','vvs-club.png'),backgroundColor:dark?'#080808':'#f5f5f7',webPreferences:{preload:path.join(base,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}});
+  loadProfile();win=new BrowserWindow({show:!smoke,width:1320,height:900,minWidth:1000,minHeight:740,title:'vvs-club',autoHideMenuBar:true,icon:path.join(base,'assets','vvs-club.png'),backgroundColor:dark?'#080808':'#f5f5f7',webPreferences:{preload:path.join(base,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}});
   win.webContents.on('will-navigate',event=>event.preventDefault());win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   win.webContents.session.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
-  win.webContents.on('did-finish-load',emit);win.loadFile(path.join(base,'index.html'));win.on('resize',layout);
+  win.webContents.on('did-finish-load',()=>{emit();if(smoke)runSmoke();});win.loadFile(path.join(base,'index.html'));win.on('resize',layout);
   win.on('closed',()=>{for(const view of pages.values())view.webContents.close();pages.clear();bridgeView?.webContents.close();bridgeView=null;win=null;});
 });
 app.on('window-all-closed',()=>app.quit());
 app.on('before-quit',()=>{for(const {child} of workers.values()){if(process.platform==='win32')spawn('taskkill',['/pid',String(child.pid),'/t','/f'],{windowsHide:true});else child.kill();}});
+
+async function runSmoke() {
+  const assert=require('node:assert/strict');
+  const report=process.env.VVS_SMOKE_REPORT;
+  try {
+    assert.equal(mode,'home');
+    const call=(action,data={})=>win.webContents.executeJavaScript(`window.club.request(${JSON.stringify(action)},${JSON.stringify(data)})`);
+    assert.equal((await call('folder',{title:'检查文件夹'})).ok,true);
+    const root=profile.bookmarks[0];assert.ok(root&&!root.url);
+    await call('folder',{title:'子文件夹',parent:root.id});
+    const child=profile.bookmarks.find(x=>x.parent===root.id);assert.ok(child);
+    assert.equal((await call('bookmark-move',{id:root.id,parent:child.id})).ok,false);
+    await call('bookmarks');assert.equal(mode,'bookmarks');
+    const view=newView('online','smoke-'+crypto.randomUUID());
+    pages.set('smoke',view);attach(view,'online');await view.webContents.loadURL('about:blank');
+    assert.equal(await view.webContents.executeJavaScript("typeof window.club === 'undefined' && typeof require === 'undefined' && typeof process === 'undefined'"),true);
+    assert.ok(view.getBounds().width>0);
+    await call('home');assert.equal(mode,'home');assert.equal(pages.size,0);assert.equal(active,null);
+    const loaded=JSON.parse(fs.readFileSync(path.join(app.getPath('userData'),'preferences.json'),'utf8'));assert.equal(loaded.bookmarks.length,2);
+    if(report)fs.writeFileSync(report,JSON.stringify({ok:true,checks:['renderer bridge','folder persistence','cycle rejection','isolated online view','return home']}));
+    app.exit(0);
+  } catch(error) {if(report)fs.writeFileSync(report,JSON.stringify({ok:false,error:error.message}));app.exit(1);}
+}

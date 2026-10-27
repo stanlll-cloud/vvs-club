@@ -56,6 +56,10 @@
       {
         "from": "../../build/ffmpeg-windows/ffmpeg-corresponding-source.zip",
         "to": "ffmpeg-corresponding-source.zip"
+      },
+      {
+        "from": "README.md",
+        "to": "Windows-README.md"
       }
     ],
     "win": {
@@ -72,5 +76,10 @@
       "createDesktopShortcut": true,
       "include": "installer.nsh"
     }
+  },
+  "homepage": "https://github.com/stanlll-cloud/vvs-club",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stanlll-cloud/vvs-club.git"
   }
 }
