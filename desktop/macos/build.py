@@ -39,7 +39,7 @@ def main() -> None:
         'xcrun', 'swiftc', '-swift-version', '5', '-O', '-target',
         f'{platform.machine()}-apple-macos13.0', '-framework', 'AppKit',
         '-framework', 'WebKit', '-module-cache-path', str(module_cache),
-        str(source / 'VVSClub.swift'), str(source / 'CloudCoordinator.swift'), '-o', str(executable),
+        str(source / 'VVSClub.swift'), str(source / 'CloudCoordinator.swift'), str(source / 'Bookmarks.swift'), '-o', str(executable),
     ], check=True)
     plist = {
         'CFBundleExecutable': 'vvs-club', 'CFBundleName': 'vvs-club',

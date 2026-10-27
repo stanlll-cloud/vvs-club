@@ -71,6 +71,9 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     private var forward: NSButton!
     private var reload: NSButton!
     private var external: NSButton!
+    private var favorite: NSButton!
+    private let bookmarkStore = BookmarkStore()
+    private var bookmarkPanel: BookmarkPanel?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
@@ -128,6 +131,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         addButton("扫描本地", symbol: "folder.badge.plus", tag: -2)
         addButton("连接网盘", symbol: "icloud", tag: -4)
         addSection("在线影视区")
+        addButton("书签", symbol: "book.closed", tag: -5)
         for (index, site) in sites.enumerated() {
             addButton(site.name, symbol: "play.rectangle", tag: index)
         }
@@ -183,6 +187,8 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         locationLabel.lineBreakMode = .byTruncatingMiddle
         labels.setContentHuggingPriority(NSLayoutConstraint.Priority(1), for: .horizontal)
         toolbar.addArrangedSubview(labels)
+        favorite = tool("star", "收藏当前网址", #selector(saveBookmark))
+        toolbar.addArrangedSubview(favorite)
         toolbar.addArrangedSubview(external)
         themeButton = tool(darkTheme ? "sun.max" : "moon", "切换深色或浅色", #selector(toggleTheme))
         toolbar.addArrangedSubview(themeButton)
@@ -312,6 +318,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         return url
     }
     @objc private func selectSite(_ sender: NSButton) {
+        if sender.tag == -5 { showBookmarks(); return }
         if sender.tag == -2 { chooseFolder(name: "本地影片", cloud: false); return }
         if sender.tag == -3 || sender.tag == -4 { showClouds(sender.tag); return }
         if sender.tag == -1 { libraryRoute = "/" }
@@ -342,6 +349,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         chooseFolder(name: cloudNames[sender.tag], cloud: true)
     }
     private func showClouds(_ key: Int) {
+        bookmarkPanel?.view.isHidden = true
         current = nil
         welcome.isHidden = true
         cloudPanel?.isHidden = true
@@ -454,6 +462,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         syncToolbar()
     }
     private func show(_ key: Int) {
+        bookmarkPanel?.view.isHidden = true
         cloudCoordinator?.view.isHidden = true
         cloudPanel?.isHidden = true
         if key == -1 && UserDefaults.standard.string(forKey: "libraryURL") == nil && localURL == nil {
@@ -525,10 +534,40 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         forward?.isEnabled = active?.canGoForward ?? false
         reload?.isEnabled = active != nil
         external?.isEnabled = current != nil
+        let canSave = (current ?? -1) >= 0 && active?.url.flatMap { validURL($0.absoluteString) } != nil
+        favorite?.isEnabled = canSave
+        let saved = active?.url.map { bookmarkStore.contains($0.absoluteString) } ?? false
+        favorite?.image = NSImage(systemSymbolName: saved ? "star.fill" : "star", accessibilityDescription: saved ? "已收藏当前网址" : "收藏当前网址")
+        favorite?.setAccessibilityLabel(saved ? "已收藏当前网址" : "收藏当前网址")
         if let key = current {
             pageTitle.stringValue = key == -1 ? "本地媒体库" : sites[key].name
             locationLabel.stringValue = active?.url?.host ?? "正在连接…"
         }
+    }
+    @objc private func saveBookmark() {
+        guard (current ?? -1) >= 0, let url = active?.url, validURL(url.absoluteString) != nil else { return }
+        if bookmarkStore.contains(url.absoluteString) { status.stringValue = "此网址已在书签中，可在左侧「书签」管理。"; return }
+        if bookmarkStore.add(title: active?.title ?? url.host ?? "未命名书签", url: url.absoluteString) {
+            status.stringValue = "已收藏到书签栏"; bookmarkPanel?.refresh(); syncToolbar()
+        } else { status.stringValue = bookmarkStore.error ?? "书签保存失败，请重试。" }
+    }
+    private func showBookmarks() {
+        current = nil; welcome.isHidden = true; cloudPanel?.isHidden = true; cloudCoordinator?.view.isHidden = true
+        for tab in tabs.values { tab.isHidden = true }
+        for button in buttons { button.state = button.tag == -5 ? .on : .off }
+        if bookmarkPanel == nil {
+            let panel = BookmarkPanel(store: bookmarkStore)
+            panel.onOpen = { [weak self] title, raw in
+                guard let self = self, self.validURL(raw) != nil else { return }
+                if let index = self.sites.firstIndex(where: { $0.url == raw }) { self.show(index) }
+                else { self.sites.append(Site(name: title, url: raw)); self.show(self.sites.count - 1) }
+            }
+            panel.onChange = { [weak self] in self?.syncToolbar() }
+            bookmarkPanel = panel; add(panel.view, to: webHost)
+            NSLayoutConstraint.activate([panel.view.leadingAnchor.constraint(equalTo: webHost.leadingAnchor), panel.view.trailingAnchor.constraint(equalTo: webHost.trailingAnchor), panel.view.topAnchor.constraint(equalTo: webHost.topAnchor), panel.view.bottomAnchor.constraint(equalTo: webHost.bottomAnchor)])
+        }
+        bookmarkPanel?.refresh(); bookmarkPanel?.view.isHidden = false
+        pageTitle.stringValue = "书签"; locationLabel.stringValue = "文件夹 · 拖拽整理 · 双击打开"; status.stringValue = "书签仅保存在这台 Mac。"; syncToolbar()
     }
     @objc private func goBack() { active?.goBack() }
     @objc private func goForward() { active?.goForward() }
