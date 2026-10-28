@@ -243,6 +243,51 @@ ipcMain.handle('club:request',async(event,action,data={})=>{
     else if(action==='reload')active?.webContents.reload();
     else if(action==='external'){const u=safeURL(active?.webContents.getURL());if(u)await shell.openExternal(u.href);}
     else if(action==='source')await shell.openExternal('https://github.com/stanlll-cloud/vvs-club');
+    else if(action==='update'){
+      try {
+        const res = await fetch('https://api.github.com/repos/stanlll-cloud/vvs-club/releases/latest', {
+          headers: { 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'vvs-club-windows' }
+        });
+        if (!res.ok) throw new Error('网络请求异常');
+        const json = await res.json();
+        const currentVer = app.getVersion() || '0.1.0';
+        const remoteVer = (json.tag_name || '').replace(/^[vV]/, '');
+        const isNewer = remoteVer.localeCompare(currentVer, undefined, { numeric: true }) > 0;
+        if (isNewer) {
+          const detail = (json.body || '').slice(0, 300);
+          const { response } = await dialog.showMessageBox(win, {
+            type: 'info',
+            buttons: ['立即前往升级', '稍后再说'],
+            defaultId: 0,
+            title: '发现新版本',
+            message: `发现新版本 ${json.tag_name}（当前版本 v${currentVer}）`,
+            detail: detail ? `更新日志：\n${detail}` : '全新版本已发布，推荐立即升级！'
+          });
+          if (response === 0) {
+            await shell.openExternal(json.html_url || 'https://github.com/stanlll-cloud/vvs-club/releases');
+          }
+        } else {
+          await dialog.showMessageBox(win, {
+            type: 'info',
+            buttons: ['好的'],
+            title: '检查更新',
+            message: '当前已是最新版本',
+            detail: `当前版本 v${currentVer}，暂无可用更新。`
+          });
+        }
+      } catch (err) {
+        const { response } = await dialog.showMessageBox(win, {
+          type: 'warning',
+          buttons: ['前往 GitHub 查看', '取消'],
+          title: '检查更新失败',
+          message: '未能连接到 GitHub Releases 服务',
+          detail: '请检查网络连接，或直接前往 GitHub 项目主页手动下载。'
+        });
+        if (response === 0) {
+          await shell.openExternal('https://github.com/stanlll-cloud/vvs-club/releases');
+        }
+      }
+    }
     else if(action==='sponsor')await shell.openExternal('https://justmysocks.net/members/aff.php?aff=39372');
     else if(action==='theme'){dark=!dark;saveProfile({...profile,dark});if(mode==='library')active?.webContents.executeJavaScript(`document.documentElement.classList.toggle('dark',${dark})`);if(mode==='cloud')active?.webContents.executeJavaScript(`window.setClubTheme?.(${dark})`);}
     else if(action==='ads'){ads=!ads;saveProfile({...profile,ads});for(const [key,view] of pages)if(key.startsWith('site:')){if(view===active)view.webContents.reload();else {view.webContents.close();pages.delete(key);}}}

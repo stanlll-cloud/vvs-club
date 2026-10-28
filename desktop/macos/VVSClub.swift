@@ -935,6 +935,7 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
         menu.addItem(item)
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "关于 vvs-club", action: #selector(about), keyEquivalent: "")
+        appMenu.addItem(withTitle: "检查更新…", action: #selector(checkForUpdates), keyEquivalent: "u")
         appMenu.addItem(withTitle: "高级：连接其他媒体服务…", action: #selector(configureLocal), keyEquivalent: "")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "退出 vvs-club", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
@@ -951,6 +952,50 @@ final class ClubApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUI
     }
     @objc private func openSponsor() {
         if let url = URL(string: "https://justmysocks.net/members/aff.php?aff=39372") { NSWorkspace.shared.open(url) }
+    }
+    @objc private func checkForUpdates() {
+        guard let url = URL(string: "https://api.github.com/repos/stanlll-cloud/vvs-club/releases/latest") else { return }
+        var request = URLRequest(url: url)
+        request.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
+        request.setValue("vvs-club-macos", forHTTPHeaderField: "User-Agent")
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                guard let data = data, error == nil,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let tagName = json["tag_name"] as? String else {
+                    let alert = NSAlert()
+                    alert.messageText = "检查更新失败"
+                    alert.informativeText = "无法连接至更新服务器，请稍后重试或访问 GitHub 主页。"
+                    alert.addButton(withTitle: "确定")
+                    alert.addButton(withTitle: "打开项目主页")
+                    if alert.runModal() == .alertSecondButtonReturn {
+                        if let u = URL(string: "https://github.com/stanlll-cloud/vvs-club") { NSWorkspace.shared.open(u) }
+                    }
+                    return
+                }
+                let currentVer = "0.1.0"
+                let remoteVer = tagName.trimmingCharacters(in: CharacterSet(charactersIn: "vV"))
+                let isNewer = remoteVer.compare(currentVer, options: .numeric) == .orderedDescending
+                let htmlUrl = json["html_url"] as? String ?? "https://github.com/stanlll-cloud/vvs-club/releases"
+                let body = json["body"] as? String ?? "全新版本已发布，体验更强性能与新特性。"
+
+                let alert = NSAlert()
+                if isNewer {
+                    alert.messageText = "发现新版本 \(tagName)！"
+                    alert.informativeText = "当前版本：v\(currentVer)\n\n更新内容：\n\(body.prefix(300))\n\n是否立即前往下载最新版本？"
+                    alert.addButton(withTitle: "立即升级")
+                    alert.addButton(withTitle: "稍后再说")
+                    if alert.runModal() == .alertFirstButtonReturn {
+                        if let targetUrl = URL(string: htmlUrl) { NSWorkspace.shared.open(targetUrl) }
+                    }
+                } else {
+                    alert.messageText = "已是最新版本"
+                    alert.informativeText = "当前版本 v\(currentVer) 已经是最新版，暂无可用更新。"
+                    alert.addButton(withTitle: "好的")
+                    alert.runModal()
+                }
+            }
+        }.resume()
     }
     @objc private func about() {
         NSApp.orderFrontStandardAboutPanel(options: [
