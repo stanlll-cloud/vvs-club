@@ -16,7 +16,7 @@ vvs-club combines a personal media-library workflow with a macOS window for your
 
 ## Windows
 
-The [Windows 10/11 x64 preview](https://github.com/stanlll-cloud/vvs-club/releases/tag/v0.1.0-windows-preview) includes an installer and ZIP. Frozen backend, cloud bridge, packaged UI, bookmark persistence and browser isolation checks passed. Third-party sign-in and video playback still need validation on real devices. See [Windows instructions](desktop/windows/README.md).
+The [Windows 10/11 x64 preview](https://github.com/stanlll-cloud/vvs-club/releases/tag/v0.1.0-windows-preview.2) includes an installer and ZIP. A Windows Server 2025 VM verified password-free initial setup, local scanning, preview generation, in-app playback and matching SRT subtitle rendering. Windows 10/11 hardware, third-party sign-in and audio output remain unverified. See [Windows instructions](desktop/windows/README.md).
 
 ## Start on macOS
 

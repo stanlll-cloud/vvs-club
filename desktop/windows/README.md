@@ -8,7 +8,9 @@ Windows 10/11 x64 的桌面版本使用 Electron 独立浏览器视图，不用 
 
 ## 构建与下载
 
-[下载 Windows x64 预览版](https://github.com/stanlll-cloud/vvs-club/releases/tag/v0.1.0-windows-preview)。本版已通过冻结后端启动、五家网盘连接页、打包界面、书签保存与网页隔离检查。
+[下载 Windows x64 预览版](https://github.com/stanlll-cloud/vvs-club/releases/tag/v0.1.0-windows-preview.2)。本版已通过冻结后端启动、中文目录读取、封面转换、五家网盘连接页、打包界面、书签保存与网页隔离检查。
+
+Windows Server 2025 虚拟机已验证 ZIP 免安装版的免密码首次设置、本地扫描、预览生成、内置 H.264 播放和同名 SRT 字幕显示。首次设置可选择「只有这台电脑」并关闭访问密码。Windows 10/11 实机、安装器交互、第三方账号登录与声音输出仍待验证。
 
 仓库 Actions 的 `vvs-club Windows` 工作流手动构建安装程序与 ZIP，Actions 产物保留 14 天。只有构建和临时后端启动检查成功后才上传完整产物；构建成功不代替真实 Windows 电脑、第三方登录和具体影片播放验收。新版本尚未完成这些验收时不能称为已验证的稳定发行版。
 
