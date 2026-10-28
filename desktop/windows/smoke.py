@@ -22,6 +22,7 @@ def main():
         env={k:v for k,v in os.environ.items() if not k.startswith('PEACH_')}
         env['PEACH_DATA_ROOT']=directory
         env.update(PYTHONUTF8='1',PYTHONIOENCODING='utf-8')
+        media_helpers_smoke(args.backend.resolve(), Path(directory), env)
         log_path=Path(directory)/'backend.log'
         log=log_path.open('wb')
         process=subprocess.Popen([str(args.backend.resolve()),'--vvs-cli','serve','--host','127.0.0.1','--port',str(port),'--setup','--no-mdns','--no-ledger-sync'],env=env,stdout=log,stderr=log,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
@@ -49,6 +50,28 @@ def main():
             log.close()
         if args.openlist:
             cloud_smoke(args.backend.resolve(),args.openlist.resolve(),Path(directory)/"cloud",env)
+
+
+def media_helpers_smoke(backend, directory, env):
+    media = directory / '测试影片'
+    media.mkdir()
+    sample = media / '测试字幕.srt'
+    sample.write_text('1\n00:00:00,000 --> 00:00:01,000\n字幕测试\n', encoding='utf-8')
+    result = subprocess.run([str(backend), 'media-read', 'directory', str(media)],
+                            env=env, capture_output=True, text=True, encoding='utf-8',
+                            timeout=30, check=True)
+    entries = json.loads(result.stdout)['value']
+    if not any(entry['name'] == sample.name for entry in entries):
+        raise RuntimeError('冻结媒体读取辅助入口未返回测试文件。')
+    from PIL import Image
+    source, output = media / '封面.png', media / 'cover.jpg'
+    Image.new('RGB', (16, 24), 'navy').save(source)
+    subprocess.run([str(backend), 'local-image', str(source), str(output)], env=env,
+                   capture_output=True, timeout=30, check=True)
+    with Image.open(output) as image:
+        if image.size != (16, 24) or image.format != 'JPEG':
+            raise RuntimeError('冻结封面读取辅助入口未生成有效图片。')
+    print('Windows frozen media directory and local artwork helpers passed.')
 
 
 def cloud_smoke(backend, binary, data, env):

@@ -20,6 +20,9 @@ def main():
     if mode == '--vvs-cli':
         from peach.cli import main as run
         return run(sys.argv[1:])
+    if mode in ('media-read', 'local-image'):
+        from peach.cli import main as run
+        return run([mode, *sys.argv[1:]])
     if mode == '--cloud':
         from cloud_service import main as run
         return run()
