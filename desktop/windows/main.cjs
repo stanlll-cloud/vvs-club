@@ -11,7 +11,7 @@ const base = __dirname;
 const uiURL = pathToFileURL(path.join(base, 'index.html')).href;
 const sites = require('./assets/sites.json');
 const rules = require('./assets/adblock-rules.json');
-const {safeURL,sameSite,allowedAuth} = require('./policy.cjs');
+const {safeURL,sameSite,allowedAuth,libraryDestination} = require('./policy.cjs');
 let win, active, mode = 'home', mediaURL, cloudInfo, auth, bridgeView, profile, profileError, undoDeleted;
 let dark = false, ads = true, notice = '';
 const pages = new Map(), workers = new Map(), wired = new WeakSet();
@@ -70,11 +70,35 @@ function configureOnline(sess) {
 function newView(kind, partition) {
   const view = new WebContentsView({webPreferences:{partition, sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true, ...(kind==='cloud'?{preload:path.join(base,'cloud-preload.cjs')}: {})}});
   const wc = view.webContents;
+  let recovering = false;
+  async function recoverLibrary(raw) {
+    const target = libraryDestination(raw, mediaURL);
+    if (!target || recovering || wc.isDestroyed()) return;
+    recovering = true;
+    try {
+      for (let attempt=0;attempt<45&&!wc.isDestroyed();attempt++) {
+        try {
+          const response=await fetch(mediaURL+'/healthz',{signal:AbortSignal.timeout(2000)});
+          if(response.ok){await wc.loadURL(target);return;}
+        } catch {}
+        await new Promise(resolve=>setTimeout(resolve,1000));
+      }
+      if(view===active){notice='媒体库重启尚未完成，请返回主页后重试。';emit();}
+    } finally { recovering=false; }
+  }
   wc.setWindowOpenHandler(({url})=>{ if (safeURL(url) && sameSite(wc.getURL(),url)) wc.loadURL(url).catch(()=>{}); return {action:'deny'}; });
-  wc.on('will-navigate',(event,url)=>{if (!safeURL(url)) event.preventDefault();});
-  wc.on('will-redirect',(event,url)=>{if (!safeURL(url)) event.preventDefault();});
+  const navigate=(event,url)=>{
+    if (!safeURL(url)) {event.preventDefault();return;}
+    const target=kind==='library'?libraryDestination(url,mediaURL):null;
+    if(target&&target!==url){event.preventDefault();void recoverLibrary(target);}
+  };
+  wc.on('will-navigate',navigate);
+  wc.on('will-redirect',navigate);
   wc.on('page-title-updated',emit); wc.on('did-navigate',emit); wc.on('did-navigate-in-page',emit);
-  wc.on('did-fail-load',(_e,code,_desc,_url,isMain)=>{if(code!==-3&&isMain&&view===active){notice='页面未能加载，可刷新重试。';emit();}});
+  wc.on('did-fail-load',(_e,code,_desc,url,isMain)=>{
+    if(kind==='library'&&code===-102&&isMain&&libraryDestination(url,mediaURL)){void recoverLibrary(url);return;}
+    if(code!==-3&&isMain&&view===active){notice='页面未能加载，可刷新重试。';emit();}
+  });
   wc.on('did-finish-load',async()=>{
     if (kind==='online') {
       if (wc._clubCSS) { await wc.removeInsertedCSS(wc._clubCSS).catch(()=>{}); wc._clubCSS=null; }

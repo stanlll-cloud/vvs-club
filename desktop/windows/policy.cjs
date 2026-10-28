@@ -15,4 +15,10 @@ function allowedAuth(raw, provider) {
     return domains.some(d=>u.hostname===d||u.hostname.endsWith('.'+d));
   } catch { return false; }
 }
-module.exports = {safeURL,sameSite,allowedAuth};
+function libraryDestination(raw, service) {
+  const target = safeURL(raw), owned = safeURL(service);
+  if (!target || !owned || owned.hostname !== '127.0.0.1' || owned.protocol !== 'http:' ||
+      target.hostname !== '127.0.0.1' || target.protocol !== 'http:') return null;
+  return new URL(target.pathname + target.search + target.hash, owned.origin).href;
+}
+module.exports = {safeURL,sameSite,allowedAuth,libraryDestination};
