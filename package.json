@@ -11,11 +11,11 @@
   },
   "devDependencies": {
     "@fontsource-variable/inter": "5.3.0",
-    "@videojs/cdn": "10.2.0",
+    "@videojs/cdn": "10.3.0",
     "@phosphor-icons/core": "2.1.1",
     "healthicons": "2.0.0",
-    "lucide-static": "1.61.0",
+    "lucide-static": "1.69.0",
     "remixicon": "4.9.1",
-    "swiper": "14.3.0"
+    "swiper": "14.4.0"
   }
 }
