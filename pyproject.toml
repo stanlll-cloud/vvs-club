@@ -27,7 +27,7 @@ classifiers = [
 ]
 dependencies = [
   "itsdangerous==2.2.0",
-  "filelock==4.2.4",
+  "filelock==4.2.12",
   "tldextract==5.4.0",
   "APScheduler==3.11.3",
   "beautifulsoup4==4.15.0",
@@ -35,26 +35,26 @@ dependencies = [
   "browserexport==0.4.4",
   "pyahocorasick==2.3.1",
   "curl_cffi==0.17.0",
-  "fastapi==0.162.0",
+  "fastapi==0.165.0",
   # grpcio 与 protobuf 给云下载调 CloudDrive2 的 gRPC 接口（`downloads_clouddrive.py`）。
   # 消息代码由 grpcio-tools 1.84.0 生成后提交，它自带的 protoc 对应 protobuf 7.35.1，
   # 运行时 protobuf 必须同一大版本且不低于它。
-  "grpcio==1.84.1",
+  "grpcio==1.85.3",
   "httpx==0.28.1",
   "m3u8==6.0.0",
   "pillow==13.0.0",
   "protobuf==7.36.2",
   "pystray==0.19.5",
-  "pydantic==2.14.1",
+  "pydantic==2.14.4",
   "resvg-py==0.5.0",
-  "sentry-sdk==2.73.0",
+  "sentry-sdk==2.75.0",
   "socksio==1.0.0",
   "starlette==1.10.0",
   "torznab==0.2.1",
   "tzlocal==5.4.5",
   "uvicorn==0.54.0",
   "watchdog==6.0.0",
-  "zeroconf==0.151.5",
+  "zeroconf==0.154.0",
   "smbprotocol==1.17.0",
 ]
 
@@ -70,9 +70,9 @@ peach-tray = "peach.error_reporting:tray_main"
 [project.optional-dependencies]
 # psutil 给 `scripts/agent_worktree.py` 查工作树里的残留进程：当前目录、父进程、CPU 与内存。
 dev = [
-    "filelock==4.2.4",
+    "filelock==4.2.12",
     "psutil==7.2.2",
-    "ruff==0.17.2",
+    "ruff==0.17.6",
     "seiso==0.4.0",
 ]
 build = [
@@ -82,7 +82,7 @@ build = [
 macos = ["pyobjc-framework-Cocoa==12.2.2; sys_platform == 'darwin'"]
 # numpy 本来就是 opencv 的传递依赖，这里显式钉住：`face_detect.decode` 直接 import 它
 # 把字节喂给 `cv2.imdecode`，被 import 的外部模块必须有声明的归属。
-vision = ["opencv-python-headless==5.0.0.93", "numpy==2.5.4"]
+vision = ["opencv-python-headless==5.1.0.95", "numpy==2.5.5"]
 maintenance-115 = ["p115client==0.0.9.7.2"]
 # 字形复核与英文媒体文件名分词工具。
 naming = [
